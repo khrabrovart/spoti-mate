@@ -7,7 +7,7 @@ env:
   DOTNET_VERSION: '8.0.x'
 
 jobs:
-  build:
+  sync:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,10 +19,10 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Install dependencies
-      run: dotnet restore SpotiMate
+      run: dotnet restore
 
-    - name: Build
-      run: dotnet build SpotiMate --no-restore --configuration Release
+    - name: Build project
+      run: dotnet build --no-restore --configuration Release
 
-    - name: Test with the dotnet CLI
-      run: dotnet test
+    - name: Run synchronization
+      run: dotnet run
