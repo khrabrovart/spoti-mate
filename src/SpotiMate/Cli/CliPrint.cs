@@ -2,7 +2,7 @@ namespace SpotiMate.Cli;
 
 public static class CliPrint
 {
-    public static void PrintInfo(string message) => ColorPrint(message, ConsoleColor.Black);
+    public static void PrintInfo(string message) => ColorPrint(message, ConsoleColor.Gray);
     
     public static void PrintSuccess(string message) => ColorPrint(message, ConsoleColor.Green);
     
