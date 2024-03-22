@@ -5,6 +5,8 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
+  DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: 'true'
+  TERM: 'xterm'
 
 jobs:
   sync:
