@@ -20,9 +20,9 @@ jobs:
 
     - name: Run
       run: >-
-      dotnet run --project src/SpotiMate/SpotiMate.csproj -c Release
-      --
-      --client-id=${{secrets.CLIENT_ID}}
-      --client-secret=${{secrets.CLIENT_SECRET}}
-      --refresh-token=${{secrets.REFRESH_TOKEN}}
-      --favorites-playlist-id=${{secrets.FAVORITES_PLAYLIST_ID}}
+        dotnet run --project src/SpotiMate/SpotiMate.csproj -c Release
+        --
+        --client-id=${{secrets.CLIENT_ID}}
+        --client-secret=${{secrets.CLIENT_SECRET}}
+        --refresh-token=${{secrets.REFRESH_TOKEN}}
+        --favorites-playlist-id=${{secrets.FAVORITES_PLAYLIST_ID}}
