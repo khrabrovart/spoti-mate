@@ -20,7 +20,7 @@ jobs:
 
     - name: Run
       run: >-
-        dotnet run --project src/SpotiMate/SpotiMate.csproj -c Release
+        dotnet run --project ./src/SpotiMate/SpotiMate.csproj -c Release
         --
         --client-id=${{secrets.CLIENT_ID}}
         --client-secret=${{secrets.CLIENT_SECRET}}
