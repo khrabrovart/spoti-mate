@@ -2,6 +2,8 @@ name: Synchronize Spotify
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 20 * * *'
 
 env:
   DOTNET_VERSION: '8.0.x'
