@@ -12,4 +12,7 @@ public class CliOptions
     
     [Option("refresh-token", Required = true, HelpText = "Spotify refresh token.")]
     public string RefreshToken { get; set; }
+    
+    [Option("favorites-playlist-id", Required = true, HelpText = "Spotify favorites playlist id.")]
+    public string FavoritesPlaylistId { get; set; }
 }
