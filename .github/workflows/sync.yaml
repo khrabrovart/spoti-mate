@@ -18,11 +18,11 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install dependencies
-      run: dotnet restore
-
-    - name: Build project
-      run: dotnet build --no-restore --configuration Release
-
-    - name: Run synchronization
-      run: dotnet run
+    - name: Run
+      run: >-
+      dotnet run --project src/SpotiMate/SpotiMate.csproj -c Release
+      --
+      --client-id=${{secrets.CLIENT_ID}}
+      --client-secret=${{secrets.CLIENT_SECRET}}
+      --refresh-token=${{secrets.REFRESH_TOKEN}}
+      --favorites-playlist-id=${{secrets.FAVORITES_PLAYLIST_ID}}
