@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotiMate", "SpotiMate\SpotiMate.csproj", "{041BB173-9D44-4EBF-9A50-A18E57124796}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{041BB173-9D44-4EBF-9A50-A18E57124796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{041BB173-9D44-4EBF-9A50-A18E57124796}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{041BB173-9D44-4EBF-9A50-A18E57124796}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{041BB173-9D44-4EBF-9A50-A18E57124796}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
