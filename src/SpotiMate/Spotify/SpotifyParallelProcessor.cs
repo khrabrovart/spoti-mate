@@ -90,7 +90,9 @@ public class SpotifyParallelProcessor
                             throw new SpotifyClientException("Internal server error. Too many retries.");
                         }
                         
-                        CliPrint.PrintWarning(JsonSerializer.Serialize(ex));
+                        CliPrint.PrintWarning(JsonSerializer.Serialize(ex.Call));
+                        CliPrint.PrintWarning(ex.Message);
+                        CliPrint.PrintWarning(ex.InnerException?.Message);
                         await Task.Delay(1000);
                         
                         continue;
