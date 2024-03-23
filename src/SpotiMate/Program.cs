@@ -13,6 +13,7 @@ public class Program
     
     private static async Task Run(CliOptions options)
     {
+        throw new SpotifyClientException("This is a test exception.");
         var spotify = new SpotifyClient();
         await spotify.Authorize(options.ClientId, options.ClientSecret, options.RefreshToken);
         
@@ -24,5 +25,8 @@ public class Program
             spotify, 
             savedTracks,
             options.FavoritesPlaylistId);
+        
+        CliPrint.PrintInfo("Favorites synchronized.");
+        CliPrint.PrintSuccess("Done.");
     }
 }

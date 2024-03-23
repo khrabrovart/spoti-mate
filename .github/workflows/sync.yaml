@@ -3,7 +3,7 @@ name: Spotify Synchonization
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/20 * * * *'
+    - cron: '45 12 * * *'
 
 env:
   DOTNET_VERSION: '8.0.x'

@@ -7,14 +7,13 @@ namespace SpotiMate.Spotify;
 
 public class SpotifyParallelProcessor
 {
-    private const int Parallelism = 10;
-    private const int RegularDelay = 1000;
+    private const int MaxRetries = 5;
     
     public async Task<IReadOnlyCollection<TItem>> GetAll<TResponse, TItem>(Func<IFlurlRequest> requestBuilder, int limit) 
         where TResponse : ISpotifyPageResponse<TItem>
         where TItem : ISpotifyObject
     {
-        var initResponse = await MakeRequest<TResponse>(requestBuilder(), limit, 0);
+        var initResponse = await WaitRequest(MakePageRequest<TResponse>(requestBuilder(), limit, 0));
         
         var total = initResponse.Total;
         var initItems = initResponse.Items;
@@ -24,7 +23,8 @@ public class SpotifyParallelProcessor
         
         for (var i = 0; i < remainingRequestsCount; i++)
         {
-            tasks.Add(MakeRequest<TResponse>(requestBuilder(), limit, initItems.Length + i * limit));
+            tasks.Add(WaitRequest(
+                MakePageRequest<TResponse>(requestBuilder(), limit, initItems.Length + i * limit)));
         }
         
         var responses = await Task.WhenAll(tasks);
@@ -40,15 +40,22 @@ public class SpotifyParallelProcessor
         return results;
     }
 
-    private static async Task<TResponse> MakeRequest<TResponse>(IFlurlRequest request, int limit, int offset)
+    private static Task<TResponse> MakePageRequest<TResponse>(IFlurlRequest request, int limit, int offset)
     {
+        return request
+            .SetQueryParams(new { limit, offset })
+            .GetJsonAsync<TResponse>();
+    }
+
+    private static async Task<TResponse> WaitRequest<TResponse>(Task<TResponse> requestTask)
+    {
+        var retries = 0;
+        
         while (true)
         {
             try
             {
-                return await request
-                    .SetQueryParams(new { limit, offset })
-                    .GetJsonAsync<TResponse>();
+                return await requestTask;
             }
             catch (FlurlHttpException ex)
             {
@@ -56,18 +63,32 @@ public class SpotifyParallelProcessor
                 {
                     case 429:
                     {
+                        if (retries++ >= MaxRetries)
+                        {
+                            throw new SpotifyClientException("Request limit exceeded. Too many retries. Giving up.");
+                        }
+                        
                         if (ex.Call.Response.Headers.TryGetFirst("Retry-After", out var ra))
                         {
                             var delay = int.Parse(ra) + 1;
                             await Task.Delay(delay * 1000);
                         }
-                    
+                        else
+                        {
+                            CliPrint.PrintWarning("No Retry-After header found. Waiting for 10 seconds.");
+                            await Task.Delay(10000);
+                        }
+
                         continue;
                     }
                     
                     case 500:
                     {
-                        CliPrint.PrintError("Internal server error. Retrying...");
+                        if (retries++ >= MaxRetries)
+                        {
+                            throw new SpotifyClientException("Internal server error. Too many retries. Giving up.");
+                        }
+                        
                         await Task.Delay(1000);
                         
                         continue;
@@ -81,40 +102,16 @@ public class SpotifyParallelProcessor
     }
 
     public async Task<bool> ProcessAll<TItem>(
+        Func<IEnumerable<TItem>, Task<IFlurlResponse>> requestMaker,
         IEnumerable<TItem> items,
-        int chunkSize,
-        Func<IEnumerable<TItem>, Task<bool>> action)
+        int chunkSize)
     {
         var chunks = items.Chunk(chunkSize);
-        var batches = chunks.Chunk(Parallelism);
-        
-        foreach (var batch in batches)
-        {
-            var tasks = batch.Select(async c => await action(c));
+        var tasks = chunks
+            .Select(chunk => WaitRequest(requestMaker(chunk)))
+            .ToArray();
 
-            try
-            {
-
-                var responses = await Task.WhenAll(tasks);
-
-                if (responses.Any(r => !r))
-                {
-                    return false;
-                }
-            }
-            catch (FlurlHttpException ex)
-            {
-                if (ex.StatusCode == 429)
-                {
-                    CliPrint.PrintError("Too many requests.");
-                }
-                
-                return false;
-            }
-
-            await Task.Delay(RegularDelay);
-        }
-        
-        return true;
+        var responses = await Task.WhenAll(tasks);
+        return responses.All(r => r.StatusCode is >= 200 and < 300);
     }
 }

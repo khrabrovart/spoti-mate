@@ -1,5 +1,6 @@
 using Flurl;
 using Flurl.Http;
+using SpotiMate.Spotify.Extensions;
 using SpotiMate.Spotify.Objects;
 using SpotiMate.Spotify.Responses;
 
@@ -41,31 +42,24 @@ public class SpotifyClient
     public async Task<bool> AddTracksToPlaylist(string playlistId, IEnumerable<string> trackIds)
     {
         return await _spotifyParallelProcessor.ProcessAll(
+            chunk => CreateApiRequest($"playlists/{playlistId}/tracks")
+                .PostJsonAsync(new
+                {
+                    uris = chunk.Select(id => id.ToSpotifyTrackUri())
+                }),
             trackIds,
-            chunkSize: 100,
-            async chunk =>
-            {
-                var response = await CreateApiRequest($"playlists/{playlistId}/tracks")
-                    .PostJsonAsync(new { uris = chunk.Select(id => $"spotify:track:{id}") });
-
-                return response.StatusCode == 201;
-            });
+            chunkSize: 100);
     }
     
     public async Task<bool> RemoveTracksFromPlaylist(string playlistId, IEnumerable<string> trackIds)
     {
         return await _spotifyParallelProcessor.ProcessAll(
+            chunk => CreateApiRequest($"playlists/{playlistId}/tracks")
+                .SendJsonAsync(HttpMethod.Delete, new
+                {
+                    tracks = chunk.Select(id => new { uri = id.ToSpotifyTrackUri() })
+                }),
             trackIds,
-            chunkSize: 100,
-            async chunk =>
-            {
-                var response = await CreateApiRequest($"playlists/{playlistId}/tracks")
-                    .SendJsonAsync(HttpMethod.Delete, new
-                    {
-                        tracks = chunk.Select(id => new { uri = $"spotify:track:{id}" })
-                    });
-
-                return response.StatusCode == 200;
-            });
+            chunkSize: 100);
     }
 }
