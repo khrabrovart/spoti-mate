@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Flurl.Http;
 using SpotiMate.Cli;
 using SpotiMate.Spotify.Objects;
@@ -9,6 +8,7 @@ namespace SpotiMate.Spotify;
 public class SpotifyParallelProcessor
 {
     private const int MaxRetries = 5;
+    private const int RequestDelay = 50;
     
     public async Task<IReadOnlyCollection<TItem>> GetAll<TResponse, TItem>(Func<IFlurlRequest> requestBuilder, int limit) 
         where TResponse : ISpotifyPageResponse<TItem>
@@ -26,6 +26,8 @@ public class SpotifyParallelProcessor
         {
             tasks.Add(WaitRequest(
                 MakePageRequest<TResponse>(requestBuilder(), limit, initItems.Length + i * limit)));
+            
+            await Task.Delay(RequestDelay);
         }
         
         var responses = await Task.WhenAll(tasks);
@@ -39,6 +41,24 @@ public class SpotifyParallelProcessor
         }
 
         return results;
+    }
+    
+    public async Task<bool> ProcessAll<TItem>(
+        Func<IEnumerable<TItem>, Task<IFlurlResponse>> requestMaker,
+        IEnumerable<TItem> items,
+        int chunkSize)
+    {
+        var chunks = items.Chunk(chunkSize).ToArray();
+        var tasks = new List<Task<IFlurlResponse>>(chunks.Length);
+
+        foreach (var chunk in chunks)
+        {
+            tasks.Add(WaitRequest(requestMaker(chunk)));
+            await Task.Delay(RequestDelay);
+        }
+
+        var responses = await Task.WhenAll(tasks);
+        return responses.All(r => r.StatusCode is >= 200 and < 300);
     }
 
     private static Task<TResponse> MakePageRequest<TResponse>(IFlurlRequest request, int limit, int offset)
@@ -100,19 +120,5 @@ public class SpotifyParallelProcessor
                 }
             }
         }
-    }
-
-    public async Task<bool> ProcessAll<TItem>(
-        Func<IEnumerable<TItem>, Task<IFlurlResponse>> requestMaker,
-        IEnumerable<TItem> items,
-        int chunkSize)
-    {
-        var chunks = items.Chunk(chunkSize);
-        var tasks = chunks
-            .Select(chunk => WaitRequest(requestMaker(chunk)))
-            .ToArray();
-
-        var responses = await Task.WhenAll(tasks);
-        return responses.All(r => r.StatusCode is >= 200 and < 300);
     }
 }
