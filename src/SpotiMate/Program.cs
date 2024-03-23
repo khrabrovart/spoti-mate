@@ -10,18 +10,24 @@ public class Program
     {
         try
         {
-            await Parser.Default.ParseArguments<CliOptions>(args).WithParsedAsync(Run);
+            var options = Parser.Default.ParseArguments<CliOptions>(args).Value;
+            
+            if (options == null)
+            {
+                CliPrint.PrintError("Invalid arguments.");
+                return 1;
+            }
+            
+            return await Run(options) ? 0 : 1;
         }
         catch (Exception ex)
         {
             CliPrint.PrintError(ex.Message);
             return 1;
         }
-        
-        return 0;
     }
     
-    private static async Task Run(CliOptions options)
+    private static async Task<bool> Run(CliOptions options)
     {
         var spotify = new SpotifyClient();
         await spotify.Authorize(options.ClientId, options.ClientSecret, options.RefreshToken);
@@ -29,13 +35,16 @@ public class Program
         CliPrint.PrintInfo("Loading saved tracks...");
         var savedTracks = await spotify.GetSavedTracks();
         CliPrint.PrintSuccess($"Found {savedTracks.Count} saved tracks.");
+
+        var success = true;
             
-        await new FavoritesSynchronizationService().SynchronizeFavorites(
+        success &= await new FavoritesSynchronizationService().SynchronizeFavorites(
             spotify, 
             savedTracks,
             options.FavoritesPlaylistId);
         
         CliPrint.PrintInfo("Favorites synchronized.");
-        CliPrint.PrintSuccess("Done.");
+        
+        return success;
     }
 }
