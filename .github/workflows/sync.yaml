@@ -1,4 +1,4 @@
-name: Synchronize Spotify
+name: Spotify Sync
 
 on:
   workflow_dispatch:
