@@ -13,6 +13,7 @@ public class SpotifyParallelProcessor
         where TResponse : ISpotifyPageResponse<TItem>
         where TItem : ISpotifyObject
     {
+        throw new SpotifyClientException("This is a test exception.");
         var initResponse = await WaitRequest(MakePageRequest<TResponse>(requestBuilder(), limit, 0));
         
         var total = initResponse.Total;

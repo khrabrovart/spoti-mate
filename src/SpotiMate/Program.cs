@@ -6,14 +6,23 @@ namespace SpotiMate;
 
 public class Program
 {
-    public static async Task Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
-        await Parser.Default.ParseArguments<CliOptions>(args).WithParsedAsync(Run);
+        try
+        {
+            await Parser.Default.ParseArguments<CliOptions>(args).WithParsedAsync(Run);
+        }
+        catch (Exception ex)
+        {
+            CliPrint.PrintError(ex.Message);
+            return 1;
+        }
+        
+        return 0;
     }
     
     private static async Task Run(CliOptions options)
     {
-        throw new SpotifyClientException("This is a test exception.");
         var spotify = new SpotifyClient();
         await spotify.Authorize(options.ClientId, options.ClientSecret, options.RefreshToken);
         
