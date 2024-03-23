@@ -3,7 +3,7 @@ using SpotiMate.Spotify.Objects;
 
 namespace SpotiMate.Spotify.Responses;
 
-public class GetPlaylistItemsResponse
+public class GetPlaylistItemsResponse : ISpotifyPageResponse<PlaylistTrackObject>
 {
     [JsonPropertyName("limit")]
     public int Limit { get; set; }

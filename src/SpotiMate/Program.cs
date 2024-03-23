@@ -16,6 +16,13 @@ public class Program
         var spotify = new SpotifyClient();
         await spotify.Authorize(options.ClientId, options.ClientSecret, options.RefreshToken);
         
-        await new FavoritesSynchronizationService().SynchronizeFavorites(spotify, options.FavoritesPlaylistId);
+        CliPrint.PrintInfo("Loading saved tracks...");
+        var savedTracks = await spotify.GetSavedTracks();
+        CliPrint.PrintSuccess($"Found {savedTracks.Count} saved tracks.");
+            
+        await new FavoritesSynchronizationService().SynchronizeFavorites(
+            spotify, 
+            savedTracks,
+            options.FavoritesPlaylistId);
     }
 }

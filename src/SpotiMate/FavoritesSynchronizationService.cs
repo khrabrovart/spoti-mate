@@ -1,18 +1,25 @@
 using SpotiMate.Cli;
 using SpotiMate.Spotify;
+using SpotiMate.Spotify.Objects;
 
 namespace SpotiMate;
 
 public class FavoritesSynchronizationService
 {
-    public async Task SynchronizeFavorites(SpotifyClient spotify, string favoritesPlaylistId)
+    public async Task SynchronizeFavorites(
+        SpotifyClient spotify, 
+        IEnumerable<SavedTrackObject> savedTracks, 
+        string favoritesPlaylistId)
     {
-        CliPrint.PrintInfo("Getting saved tracks...");
-        var savedTracks = await spotify.GetSavedTracks();
-        CliPrint.PrintSuccess($"Found {savedTracks.Count} saved tracks.");
-        
-        CliPrint.PrintInfo("Getting favorite tracks...");
+        CliPrint.PrintInfo("Loading favorite tracks...");
         var favoriteTracks = await spotify.GetPlaylistTracks(favoritesPlaylistId);
+        
+        if (favoriteTracks == null)
+        {
+            CliPrint.PrintError("Failed to get favorite tracks.");
+            return;
+        }
+
         CliPrint.PrintSuccess($"Found {favoriteTracks.Count} favorite tracks.");
         
         var savedTrackIds = savedTracks.Select(t => t.Track.Id).ToHashSet();

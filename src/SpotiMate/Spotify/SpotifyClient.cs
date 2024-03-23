@@ -17,51 +17,49 @@ public class SpotifyClient
         _accessToken = await _authorizer.GetAccessToken(clientId, clientSecret, refreshToken);
     }
 
-    private IFlurlRequest MakeRequest(string segment)
+    private IFlurlRequest CreateApiRequest(string segment)
     {
         return SpotifyEndpoints.Api
             .AppendPathSegment(segment)
             .WithOAuthBearerToken(_accessToken);
     }
-
+    
     public async Task<IReadOnlyCollection<SavedTrackObject>> GetSavedTracks()
     {
         return await _spotifyParallelProcessor.GetAll<GetSavedTracksResponse, SavedTrackObject>(
-            MakeRequest("me/tracks"),
-            limit: 50, 
-            r => r.Items);
+            () => CreateApiRequest("me/tracks"),
+            limit: 50);
     }
     
     public async Task<IReadOnlyCollection<PlaylistTrackObject>> GetPlaylistTracks(string playlistId)
     {
         return await _spotifyParallelProcessor.GetAll<GetPlaylistItemsResponse, PlaylistTrackObject>(
-            MakeRequest($"playlists/{playlistId}/tracks"),
-            limit: 50, 
-            r => r.Items);
+            () => CreateApiRequest($"playlists/{playlistId}/tracks"),
+            limit: 50);
     }
     
-    public async Task<bool> AddTracksToPlaylist(string playlistId, string[] trackIds)
+    public async Task<bool> AddTracksToPlaylist(string playlistId, IEnumerable<string> trackIds)
     {
         return await _spotifyParallelProcessor.ProcessAll(
             trackIds,
             chunkSize: 100,
             async chunk =>
             {
-                var response = await MakeRequest($"playlists/{playlistId}/tracks")
+                var response = await CreateApiRequest($"playlists/{playlistId}/tracks")
                     .PostJsonAsync(new { uris = chunk.Select(id => $"spotify:track:{id}") });
 
                 return response.StatusCode == 201;
             });
     }
     
-    public async Task<bool> RemoveTracksFromPlaylist(string playlistId, string[] trackIds)
+    public async Task<bool> RemoveTracksFromPlaylist(string playlistId, IEnumerable<string> trackIds)
     {
         return await _spotifyParallelProcessor.ProcessAll(
             trackIds,
             chunkSize: 100,
             async chunk =>
             {
-                var response = await MakeRequest($"playlists/{playlistId}/tracks")
+                var response = await CreateApiRequest($"playlists/{playlistId}/tracks")
                     .SendJsonAsync(HttpMethod.Delete, new
                     {
                         tracks = chunk.Select(id => new { uri = $"spotify:track:{id}" })
