@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Flurl.Http;
 using SpotiMate.Cli;
 using SpotiMate.Spotify.Objects;
@@ -65,7 +66,7 @@ public class SpotifyParallelProcessor
                     {
                         if (retries++ >= MaxRetries)
                         {
-                            throw new SpotifyClientException("Request limit exceeded. Too many retries. Giving up.");
+                            throw new SpotifyClientException("Request limit exceeded. Too many retries.");
                         }
                         
                         if (ex.Call.Response.Headers.TryGetFirst("Retry-After", out var ra))
@@ -86,9 +87,10 @@ public class SpotifyParallelProcessor
                     {
                         if (retries++ >= MaxRetries)
                         {
-                            throw new SpotifyClientException("Internal server error. Too many retries. Giving up.");
+                            throw new SpotifyClientException("Internal server error. Too many retries.");
                         }
                         
+                        CliPrint.PrintWarning(JsonSerializer.Serialize(ex));
                         await Task.Delay(1000);
                         
                         continue;
