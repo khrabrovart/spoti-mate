@@ -18,7 +18,11 @@ public class Program
                 return 1;
             }
             
-            return await Run(options) ? 0 : 1;
+            var result = await Run(options) ? 0 : 1;
+            
+            CliPrint.PrintSuccess("Done.");
+            
+            return result;
         }
         catch (Exception ex)
         {
