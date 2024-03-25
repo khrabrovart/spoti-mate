@@ -2,18 +2,31 @@ namespace SpotiMate.Cli;
 
 public static class CliPrint
 {
-    public static void PrintInfo(string message) => ColorPrint(message, ConsoleColor.Gray);
-    
-    public static void PrintSuccess(string message) => ColorPrint(message, ConsoleColor.Green);
-    
-    public static void PrintWarning(string message) => ColorPrint(message, ConsoleColor.Yellow);
-    
-    public static void PrintError(string message) => ColorPrint(message, ConsoleColor.Red);
-    
-    private static void ColorPrint(string message, ConsoleColor color)
+    public static void PrintInfo(string message, bool writeLine = true) =>
+        ColorPrint(message, ConsoleColor.Gray, writeLine);
+
+    public static void PrintSuccess(string message, bool writeLine = true) =>
+        ColorPrint(message, ConsoleColor.Green, writeLine);
+
+    public static void PrintWarning(string message, bool writeLine = true) =>
+        ColorPrint(message, ConsoleColor.Yellow, writeLine);
+
+    public static void PrintError(string message, bool writeLine = true) =>
+        ColorPrint(message, ConsoleColor.Red, writeLine);
+
+    private static void ColorPrint(string message, ConsoleColor color, bool writeLine)
     {
         Console.ForegroundColor = color;
-        Console.WriteLine(message);
+
+        if (writeLine)
+        {
+            Console.WriteLine(message);
+        }
+        else
+        {
+            Console.Write(message);
+        }
+
         Console.ResetColor();
     }
 }

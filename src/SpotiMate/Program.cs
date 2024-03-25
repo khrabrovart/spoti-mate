@@ -20,7 +20,7 @@ public class Program
             
             var result = await Run(options) ? 0 : 1;
             
-            CliPrint.PrintSuccess("Done.");
+            CliPrint.PrintSuccess("Done.", writeLine: false);
             
             return result;
         }
