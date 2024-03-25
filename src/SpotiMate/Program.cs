@@ -43,7 +43,7 @@ public class Program
             savedTracks,
             options.FavoritesPlaylistId);
         
-        CliPrint.PrintInfo("Favorites synchronized.");
+        CliPrint.PrintSuccess("Favorites synchronized.");
         
         return success;
     }
