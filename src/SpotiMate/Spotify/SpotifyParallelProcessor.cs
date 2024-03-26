@@ -7,8 +7,8 @@ namespace SpotiMate.Spotify;
 
 public class SpotifyParallelProcessor
 {
-    private const int MaxRetries = 5;
-    private const int RequestDelay = 50;
+    private const int MaxRetries = 10;
+    private const int RequestDelay = 100;
     
     public async Task<IReadOnlyCollection<TItem>> GetAll<TResponse, TItem>(Func<IFlurlRequest> requestBuilder, int limit) 
         where TResponse : ISpotifyPageResponse<TItem>
