@@ -11,7 +11,7 @@ public class SpotifyParallelProcessor
     private const int RequestDelay = 100;
 
     private const int Default429Delay = 10000;
-    private const int Default500Delay = 10000;
+    private const int Default500Delay = 100;
     
     public async Task<IReadOnlyCollection<TItem>> GetAll<TResponse, TItem>(Func<IFlurlRequest> requestBuilder, int limit) 
         where TResponse : ISpotifyPageResponse<TItem>
