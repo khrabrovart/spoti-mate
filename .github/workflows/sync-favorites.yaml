@@ -1,4 +1,4 @@
-name: Spotify Synchonization
+name: Spotify Favorites Synchonization
 
 on:
   workflow_dispatch:
@@ -21,6 +21,7 @@ jobs:
       run: >-
         dotnet run --project ./src/SpotiMate/SpotiMate.csproj -c Release
         --
+        synchronize-favorites
         --client-id=${{secrets.CLIENT_ID}}
         --client-secret=${{secrets.CLIENT_SECRET}}
         --refresh-token=${{secrets.REFRESH_TOKEN}}

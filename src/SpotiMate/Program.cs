@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using SpotiMate.Cli;
+using SpotiMate.Services;
 using SpotiMate.Spotify;
 
 namespace SpotiMate;
@@ -10,19 +11,25 @@ public class Program
     {
         try
         {
-            var options = Parser.Default.ParseArguments<CliOptions>(args).Value;
+            var options = Parser.Default
+                .ParseArguments<SynchronizeFavoritesOptions, SynchronizeArtistsOptions>(args)
+                .Value;
             
-            if (options == null)
+            if (options is not CliOptions parsedOptions)
             {
                 CliPrint.PrintError("Invalid arguments.");
                 return 1;
             }
+
+            var spotify = new SpotifyClient();
+            await spotify.Authorize(parsedOptions.ClientId, parsedOptions.ClientSecret, parsedOptions.RefreshToken);
             
-            var result = await Run(options) ? 0 : 1;
-            
-            CliPrint.PrintSuccess("Done.", writeLine: false);
-            
-            return result;
+            return options switch
+            {
+                SynchronizeFavoritesOptions typedOptions => await SynchronizeFavorites(spotify, typedOptions),
+                SynchronizeArtistsOptions typedOptions => await SynchronizeArtists(spotify, typedOptions),
+                _ => 1
+            };
         }
         catch (Exception ex)
         {
@@ -31,24 +38,40 @@ public class Program
         }
     }
     
-    private static async Task<bool> Run(CliOptions options)
+    private static async Task<int> SynchronizeFavorites(SpotifyClient spotify, SynchronizeFavoritesOptions options)
     {
-        var spotify = new SpotifyClient();
-        await spotify.Authorize(options.ClientId, options.ClientSecret, options.RefreshToken);
+        CliPrint.PrintInfo("Synchronizing favorites...");
         
-        CliPrint.PrintInfo("Loading saved tracks...");
-        var savedTracks = await spotify.GetSavedTracks();
-        CliPrint.PrintSuccess($"Found {savedTracks.Count} saved tracks.");
-
-        var success = true;
-            
-        success &= await new FavoritesSynchronizationService().SynchronizeFavorites(
+        var savedTracks = await new SavedTracksService().GetSavedTracks(spotify);
+        
+        if (savedTracks == null || savedTracks.Count == 0)
+        {
+            return 1;
+        }
+        
+        var result = await new FavoritesService().SynchronizeFavorites(
             spotify, 
-            savedTracks,
+            savedTracks, 
             options.FavoritesPlaylistId);
         
-        CliPrint.PrintSuccess("Favorites synchronized.");
+        return result ? 0 : 1;
+    }
+
+    private static async Task<int> SynchronizeArtists(SpotifyClient spotify, SynchronizeArtistsOptions options)
+    {
+        CliPrint.PrintInfo("Synchronizing artists...");
         
-        return success;
+        var savedTracks = await new SavedTracksService().GetSavedTracks(spotify);
+
+        if (savedTracks == null || savedTracks.Count == 0)
+        {
+            return 1;
+        }
+
+        var result = await new ArtistsService().SynchronizeArtists(
+            spotify,
+            savedTracks);
+
+        return result ? 0 : 1;
     }
 }

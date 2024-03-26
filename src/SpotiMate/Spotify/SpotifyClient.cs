@@ -62,4 +62,16 @@ public class SpotifyClient
             trackIds,
             chunkSize: 100);
     }
+    
+    public async Task<bool> FollowArtists(IEnumerable<string> artistIds)
+    {
+        return await _spotifyParallelProcessor.ProcessAll(
+            chunk => CreateApiRequest("me/following")
+                .PutJsonAsync(new
+                {
+                    ids = chunk
+                }),
+            artistIds,
+            chunkSize: 50);
+    }
 }

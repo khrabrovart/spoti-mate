@@ -40,7 +40,7 @@ public class SpotifyParallelProcessor
             results.AddRange(response.Items);
         }
 
-        return results;
+        return results.Count == total ? results : null;
     }
     
     public async Task<bool> ProcessAll<TItem>(

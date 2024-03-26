@@ -1,0 +1,27 @@
+name: Spotify Artists Synchonization
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '45 10 * * *'
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: 'true'
+  TERM: 'xterm'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run
+      run: >-
+        dotnet run --project ./src/SpotiMate/SpotiMate.csproj -c Release
+        --
+        synchronize-artists
+        --client-id=${{secrets.CLIENT_ID}}
+        --client-secret=${{secrets.CLIENT_SECRET}}
+        --refresh-token=${{secrets.REFRESH_TOKEN}}
