@@ -9,6 +9,9 @@ public class SpotifyParallelProcessor
 {
     private const int MaxRetries = 10;
     private const int RequestDelay = 100;
+
+    private const int Default429Delay = 10000;
+    private const int Default500Delay = 10000;
     
     public async Task<IReadOnlyCollection<TItem>> GetAll<TResponse, TItem>(Func<IFlurlRequest> requestBuilder, int limit) 
         where TResponse : ISpotifyPageResponse<TItem>
@@ -97,7 +100,7 @@ public class SpotifyParallelProcessor
                         else
                         {
                             CliPrint.PrintWarning("No Retry-After header found. Waiting for 10 seconds.");
-                            await Task.Delay(10000);
+                            await Task.Delay(Default429Delay);
                         }
 
                         continue;
@@ -110,7 +113,7 @@ public class SpotifyParallelProcessor
                             throw new SpotifyClientException("Internal server error. Too many retries.");
                         }
                         
-                        await Task.Delay(1000);
+                        await Task.Delay(Default500Delay);
                         
                         continue;
                     }
