@@ -1,9 +1,9 @@
-name: Spotify Favorites Synchonization
+name: Spotify Find Duplicates
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '45 12 * * *'
+    - cron: '25 10 * * SUN'
 
 env:
   DOTNET_VERSION: '8.0.x'
@@ -21,8 +21,9 @@ jobs:
       run: >-
         dotnet run --project ./src/SpotiMate/SpotiMate.csproj -c Release
         --
-        synchronize-favorites
+        find-duplicates
         --client-id=${{secrets.CLIENT_ID}}
         --client-secret=${{secrets.CLIENT_SECRET}}
         --refresh-token=${{secrets.REFRESH_TOKEN}}
-        --favorites-playlist-id=${{secrets.FAVORITES_PLAYLIST_ID}}
+        --duplicates-playlist-id=${{secrets.DUPLICATES_PLAYLIST_ID}}
+        --days=10
