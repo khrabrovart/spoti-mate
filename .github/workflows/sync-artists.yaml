@@ -25,4 +25,4 @@ jobs:
         --client-id=${{secrets.CLIENT_ID}}
         --client-secret=${{secrets.CLIENT_SECRET}}
         --refresh-token=${{secrets.REFRESH_TOKEN}}
-        --days=$RECENCY_DAYS
+        --days=${{vars.RECENCY_DAYS}}

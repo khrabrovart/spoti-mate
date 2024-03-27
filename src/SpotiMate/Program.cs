@@ -11,25 +11,12 @@ public class Program
     {
         try
         {
-            var options = Parser.Default
+            return await Parser.Default
                 .ParseArguments<FindDuplicatesOptions, SynchronizeArtistsOptions>(args)
-                .Value;
-            
-            if (options is not CliOptions parsedOptions)
-            {
-                CliPrint.PrintError("Invalid arguments.");
-                return 1;
-            }
-
-            var spotify = new SpotifyClient();
-            await spotify.Authorize(parsedOptions.ClientId, parsedOptions.ClientSecret, parsedOptions.RefreshToken);
-            
-            return options switch
-            {
-                FindDuplicatesOptions typedOptions => await FindDuplicates(spotify, typedOptions),
-                SynchronizeArtistsOptions typedOptions => await SynchronizeArtists(spotify, typedOptions),
-                _ => 1
-            };
+                .MapResult(
+                    (FindDuplicatesOptions options) => FindDuplicates(options),
+                    (SynchronizeArtistsOptions options) => SynchronizeArtists(options),
+                    _ => Task.FromResult(1));
         }
         catch (Exception ex)
         {
@@ -38,8 +25,10 @@ public class Program
         }
     }
     
-    private static async Task<int> FindDuplicates(SpotifyClient spotify, FindDuplicatesOptions options)
+    private static async Task<int> FindDuplicates(FindDuplicatesOptions options)
     {
+        var spotify = await GetSpotifyClient(options);
+        
         CliPrint.PrintInfo($"Finding duplicates for the last {options.Days} days...");
         
         var savedTracks = await new SavedTracksService().GetSavedTracks(spotify);
@@ -58,8 +47,10 @@ public class Program
         return result ? 0 : 1;
     }
 
-    private static async Task<int> SynchronizeArtists(SpotifyClient spotify, SynchronizeArtistsOptions options)
+    private static async Task<int> SynchronizeArtists(SynchronizeArtistsOptions options)
     {
+        var spotify = await GetSpotifyClient(options);
+        
         CliPrint.PrintInfo($"Synchronizing artists for the last {options.Days} days...");
         
         var savedTracks = await new SavedTracksService().GetSavedTracks(spotify);
@@ -75,5 +66,13 @@ public class Program
             TimeSpan.FromDays(options.Days));
 
         return result ? 0 : 1;
+    }
+    
+    private static async Task<SpotifyClient> GetSpotifyClient(CliOptions options)
+    {
+        var spotify = new SpotifyClient();
+        await spotify.Authorize(options.ClientId, options.ClientSecret, options.RefreshToken);
+        
+        return spotify;
     }
 }

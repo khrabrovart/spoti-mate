@@ -26,4 +26,4 @@ jobs:
         --client-secret=${{secrets.CLIENT_SECRET}}
         --refresh-token=${{secrets.REFRESH_TOKEN}}
         --duplicates-playlist-id=${{secrets.DUPLICATES_PLAYLIST_ID}}
-        --days=$RECENCY_DAYS
+        --days=${{vars.RECENCY_DAYS}}
