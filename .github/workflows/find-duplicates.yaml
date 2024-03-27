@@ -3,7 +3,7 @@ name: Spotify Find Duplicates
 on:
   workflow_dispatch:
   schedule:
-    - cron: '25 10 * * SUN'
+    - cron: '25 3 * * SUN'
 
 env:
   DOTNET_VERSION: '8.0.x'
@@ -26,4 +26,4 @@ jobs:
         --client-secret=${{secrets.CLIENT_SECRET}}
         --refresh-token=${{secrets.REFRESH_TOKEN}}
         --duplicates-playlist-id=${{secrets.DUPLICATES_PLAYLIST_ID}}
-        --days=10
+        --days=8

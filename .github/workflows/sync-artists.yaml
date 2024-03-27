@@ -3,7 +3,7 @@ name: Spotify Artists Synchonization
 on:
   workflow_dispatch:
   schedule:
-    - cron: '25 6 * * SUN'
+    - cron: '25 3 * * SAT'
 
 env:
   DOTNET_VERSION: '8.0.x'
@@ -25,4 +25,4 @@ jobs:
         --client-id=${{secrets.CLIENT_ID}}
         --client-secret=${{secrets.CLIENT_SECRET}}
         --refresh-token=${{secrets.REFRESH_TOKEN}}
-        --days=10
+        --days=8
