@@ -13,7 +13,7 @@ public class SpotifyParallelProcessor
     private const int Default429Delay = 10000;
     private const int Default500Delay = 100;
     
-    public async Task<IReadOnlyCollection<TItem>> GetAll<TResponse, TItem>(Func<IFlurlRequest> requestBuilder, int limit) 
+    public async Task<TItem[]> GetAll<TResponse, TItem>(Func<IFlurlRequest> requestBuilder, int limit) 
         where TResponse : ISpotifyPageResponse<TItem>
         where TItem : ISpotifyObject
     {
@@ -43,7 +43,7 @@ public class SpotifyParallelProcessor
             results.AddRange(response.Items);
         }
 
-        return results.Count == total ? results : null;
+        return results.Count == total ? results.ToArray() : null;
     }
     
     public async Task<bool> ProcessAll<TItem>(

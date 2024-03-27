@@ -6,7 +6,7 @@ namespace SpotiMate.Services;
 
 public class SavedTracksService
 {
-    public async Task<IReadOnlyCollection<SavedTrackObject>> GetSavedTracks(SpotifyClient spotify)
+    public async Task<SavedTrackObject[]> GetSavedTracks(SpotifyClient spotify)
     {
         CliPrint.PrintInfo("Loading saved tracks...");
         var savedTracks = await spotify.GetSavedTracks();
@@ -17,7 +17,7 @@ public class SavedTracksService
             return null;
         }
         
-        CliPrint.PrintSuccess($"Loaded {savedTracks.Count} saved tracks.");
+        CliPrint.PrintInfo($"Loaded {savedTracks.Length} saved tracks.");
         return savedTracks;
     }
 }

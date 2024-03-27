@@ -15,4 +15,7 @@ public class TrackObject
     
     [JsonPropertyName("popularity")]
     public int Popularity { get; set; }
+    
+    [JsonPropertyName("duration_ms")]
+    public int DurationMs { get; set; }
 }

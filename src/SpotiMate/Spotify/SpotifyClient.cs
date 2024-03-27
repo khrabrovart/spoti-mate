@@ -25,7 +25,7 @@ public class SpotifyClient
             .WithOAuthBearerToken(_accessToken);
     }
     
-    public async Task<IReadOnlyCollection<SavedTrackObject>> GetSavedTracks()
+    public async Task<SavedTrackObject[]> GetSavedTracks()
     {
         return await _spotifyParallelProcessor.GetAll<GetSavedTracksResponse, SavedTrackObject>(
             () => CreateApiRequest("me/tracks"),
@@ -67,6 +67,7 @@ public class SpotifyClient
     {
         return await _spotifyParallelProcessor.ProcessAll(
             chunk => CreateApiRequest("me/following")
+                .SetQueryParams(new { type = "artist" })
                 .PutJsonAsync(new
                 {
                     ids = chunk

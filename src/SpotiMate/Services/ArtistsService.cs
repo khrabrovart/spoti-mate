@@ -8,9 +8,11 @@ public class ArtistsService
 {
     public async Task<bool> SynchronizeArtists(
         SpotifyClient spotify, 
-        IEnumerable<SavedTrackObject> savedTracks)
+        IEnumerable<SavedTrackObject> savedTracks,
+        TimeSpan recency)
     {
         var uniqueArtists = savedTracks
+            .Where(t => t.AddedAt >= DateTime.UtcNow - recency)
             .SelectMany(t => t.Track.Artists.Select(a => a.Id))
             .Distinct()
             .ToArray();

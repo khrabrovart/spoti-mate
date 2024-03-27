@@ -12,7 +12,7 @@ public class Program
         try
         {
             var options = Parser.Default
-                .ParseArguments<SynchronizeFavoritesOptions, SynchronizeArtistsOptions>(args)
+                .ParseArguments<FindDuplicatesOptions, SynchronizeArtistsOptions>(args)
                 .Value;
             
             if (options is not CliOptions parsedOptions)
@@ -26,7 +26,7 @@ public class Program
             
             return options switch
             {
-                SynchronizeFavoritesOptions typedOptions => await SynchronizeFavorites(spotify, typedOptions),
+                FindDuplicatesOptions typedOptions => await FindDuplicates(spotify, typedOptions),
                 SynchronizeArtistsOptions typedOptions => await SynchronizeArtists(spotify, typedOptions),
                 _ => 1
             };
@@ -38,39 +38,41 @@ public class Program
         }
     }
     
-    private static async Task<int> SynchronizeFavorites(SpotifyClient spotify, SynchronizeFavoritesOptions options)
+    private static async Task<int> FindDuplicates(SpotifyClient spotify, FindDuplicatesOptions options)
     {
-        CliPrint.PrintInfo("Synchronizing favorites...");
+        CliPrint.PrintInfo($"Finding duplicates for the last {options.Days} days...");
         
         var savedTracks = await new SavedTracksService().GetSavedTracks(spotify);
         
-        if (savedTracks == null || savedTracks.Count == 0)
+        if (savedTracks == null || savedTracks.Length == 0)
         {
             return 1;
         }
         
-        var result = await new FavoritesService().SynchronizeFavorites(
+        var result = await new DuplicatesService().FindDuplicates(
             spotify, 
             savedTracks, 
-            options.FavoritesPlaylistId);
+            options.DuplicatesPlaylistId,
+            TimeSpan.FromDays(options.Days));
         
         return result ? 0 : 1;
     }
 
     private static async Task<int> SynchronizeArtists(SpotifyClient spotify, SynchronizeArtistsOptions options)
     {
-        CliPrint.PrintInfo("Synchronizing artists...");
+        CliPrint.PrintInfo($"Synchronizing artists for the last {options.Days} days...");
         
         var savedTracks = await new SavedTracksService().GetSavedTracks(spotify);
 
-        if (savedTracks == null || savedTracks.Count == 0)
+        if (savedTracks == null || savedTracks.Length == 0)
         {
             return 1;
         }
 
         var result = await new ArtistsService().SynchronizeArtists(
             spotify,
-            savedTracks);
+            savedTracks,
+            TimeSpan.FromDays(options.Days));
 
         return result ? 0 : 1;
     }
