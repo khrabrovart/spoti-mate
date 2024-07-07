@@ -93,12 +93,12 @@ public class SpotifyParallelProcessor
                             throw new SpotifyClientException("Request limit exceeded. Too many retries.");
                         }
                         
-                        if (ex.Call.Response.Headers.TryGetFirst("Retry-After", out var ra))
+                        if (ex.Call.Response.Headers.TryGetFirst("Retry-After", out var retryAfter))
                         {
-                            var delay = int.Parse(ra) + 1;
+                            var delay = int.Parse(retryAfter) + 1;
 
                             CliPrint.PrintWarning(
-                                $"Request limit exceeded. Waiting for {ra} seconds before retrying based on Retry-After header.");
+                                $"Request limit exceeded. Waiting for {retryAfter} seconds before retrying based on Retry-After header.");
 
                             await Task.Delay(delay * 1000);
                         }
