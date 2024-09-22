@@ -88,11 +88,9 @@ public class DuplicatesService
     
     private static (string Id, string Name, string[] Artists, int Popularity, DateTime AddedAt) PrepareTrack(SavedTrackObject track)
     {
-        var trackName = PrepareTrackName(track.Track.Name);
-        
         return (
             track.Track.Id,
-            trackName,
+            PrepareTrackName(track.Track.Name),
             track.Track.Artists.Select(a => a.Id).ToArray(),
             track.Track.Popularity,
             track.AddedAt);
