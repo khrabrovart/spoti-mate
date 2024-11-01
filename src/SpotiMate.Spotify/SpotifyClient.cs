@@ -1,6 +1,7 @@
 using Flurl;
 using Flurl.Http;
 using SpotiMate.Spotify.Apis;
+using SpotiMate.Spotify.Authorization;
 using SpotiMate.Spotify.Extensions;
 using SpotiMate.Spotify.Objects;
 using SpotiMate.Spotify.Responses;
@@ -10,7 +11,7 @@ namespace SpotiMate.Spotify;
 public class SpotifyClient
 {
     private readonly SpotifyParallelProcessor _spotifyParallelProcessor = new();
-    private readonly SpotifyAuthorizationApi _authorizationApi = new();
+    private readonly SpotifyAuthorizer _authorizer = new();
     
     private string _accessToken;
     

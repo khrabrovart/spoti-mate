@@ -1,28 +1,30 @@
 using SpotiMate.Cli;
 using SpotiMate.Services;
 using SpotiMate.Spotify;
-using SpotiMate.Spotify.Apis;
 
-namespace SpotiMate;
+namespace SpotiMate.Handlers;
 
-public class CommandHandler
+public class CommandHandler : ICommandHandler
 {
-    private readonly AuthorizationService _authorizationService = new();
+    private readonly ISearchService _searchService;
+
+    public CommandHandler(ISearchService searchService)
+    {
+        _searchService = searchService;
+    }
 
     public async Task<int> Handle(CliOptions options)
     {
-        var accessToken = await _authorizationService.GetAccessToken(options.ClientId, options.ClientSecret, options.RefreshToken);
-
         return options switch
         {
-            FindDuplicatesOptions findDuplicatesOptions => await FindDuplicates(findDuplicatesOptions, accessToken),
-            SynchronizeArtistsOptions synchronizeArtistsOptions => await SynchronizeArtists(synchronizeArtistsOptions, accessToken),
-            SearchTracksOptions searchTracksOptions => await SearchTracks(searchTracksOptions, accessToken),
+            FindDuplicatesOptions findDuplicatesOptions => await FindDuplicates(findDuplicatesOptions),
+            SynchronizeArtistsOptions synchronizeArtistsOptions => await SynchronizeArtists(synchronizeArtistsOptions),
+            SearchTracksOptions searchTracksOptions => await SearchTracks(searchTracksOptions),
             _ => throw new InvalidOperationException()
         };
     }
 
-    private async Task<int> FindDuplicates(FindDuplicatesOptions options, string accessToken)
+    private async Task<int> FindDuplicates(FindDuplicatesOptions options)
     {
         var spotify = await GetSpotifyClient(options);
 
@@ -44,7 +46,7 @@ public class CommandHandler
         return result ? 0 : 1;
     }
 
-    private async Task<int> SynchronizeArtists(SynchronizeArtistsOptions options, string accessToken)
+    private async Task<int> SynchronizeArtists(SynchronizeArtistsOptions options)
     {
         var spotify = await GetSpotifyClient(options);
 
@@ -65,11 +67,9 @@ public class CommandHandler
         return result ? 0 : 1;
     }
 
-    private async Task<int> SearchTracks(SearchTracksOptions options, string accessToken)
+    private async Task<int> SearchTracks(SearchTracksOptions options)
     {
-        var searchService = new SearchService(accessToken);
-
-        await searchService.SearchTracks();
+        await _searchService.SearchTracks();
 
         return 0;
     }

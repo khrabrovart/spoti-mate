@@ -2,11 +2,17 @@ using Flurl;
 using Flurl.Http;
 using SpotiMate.Spotify.Responses;
 
-namespace SpotiMate.Spotify.Apis;
+namespace SpotiMate.Spotify.Authorization;
 
-public class SpotifyAuthorizationApi
+public static class SpotifyAuthorizer
 {
-    public async Task<TokenResponse> RefreshAccessToken(string clientId, string clientSecret, string refreshToken)
+    public static async Task<SpotifyAccessToken> Authorize(string clientId, string clientSecret, string refreshToken)
+    {
+        var token = await RefreshAccessToken(clientId, clientSecret, refreshToken);
+        return token?.AccessToken;
+    }
+
+    private static async Task<TokenResponse> RefreshAccessToken(string clientId, string clientSecret, string refreshToken)
     {
         try
         {

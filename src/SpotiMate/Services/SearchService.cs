@@ -1,16 +1,17 @@
 using SpotiMate.Cli;
 using SpotiMate.Spotify.Apis;
+using SpotiMate.Spotify.Authorization;
 using SpotiMate.Spotify.Objects;
 
 namespace SpotiMate.Services;
 
-public class SearchService
+public class SearchService : ISearchService
 {
-    private readonly SpotifySearchApi _spotifySearchApi;
+    private readonly ISpotifySearchApi _spotifySearchApi;
 
-    public SearchService(string accessToken)
+    public SearchService(ISpotifySearchApi spotifySearchApi)
     {
-        _spotifySearchApi = new SpotifySearchApi(accessToken);
+        _spotifySearchApi = spotifySearchApi;
     }
 
     public async Task SearchTracks()

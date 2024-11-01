@@ -1,14 +1,15 @@
 using Flurl;
 using Flurl.Http;
+using SpotiMate.Spotify.Authorization;
 using SpotiMate.Spotify.Responses;
 
 namespace SpotiMate.Spotify.Apis;
 
-public class SpotifySearchApi
+public class SpotifySearchApi : ISpotifySearchApi
 {
     private readonly string _accessToken;
 
-    public SpotifySearchApi(string accessToken)
+    public SpotifySearchApi(SpotifyAccessToken accessToken)
     {
         _accessToken = accessToken;
     }
@@ -21,7 +22,7 @@ public class SpotifySearchApi
             .WithOAuthBearerToken(_accessToken);
     }
 
-    public async Task<SearchResponse> SearchTracks(string query, int limit = 50, int offset = 0)
+    public async Task<SpotifySearchResponse> SearchTracks(string query, int limit = 50, int offset = 0)
     {
         var queryParams = new Dictionary<string, string>
         {
@@ -31,6 +32,6 @@ public class SpotifySearchApi
             { "offset", offset.ToString() }
         };
 
-        return await CreateApiRequest("search", queryParams).GetJsonAsync<SearchResponse>();
+        return await CreateApiRequest("search", queryParams).GetJsonAsync<SpotifySearchResponse>();
     }
 }

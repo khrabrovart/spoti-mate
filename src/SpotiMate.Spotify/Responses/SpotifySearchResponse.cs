@@ -3,8 +3,8 @@ using SpotiMate.Spotify.Objects;
 
 namespace SpotiMate.Spotify.Responses;
 
-public class SearchResponse
+public class SpotifySearchResponse
 {
     [JsonPropertyName("tracks")]
-    public SearchTracksObject Tracks { get; set; }
+    public SpotifySearchTracksObject Tracks { get; set; }
 }

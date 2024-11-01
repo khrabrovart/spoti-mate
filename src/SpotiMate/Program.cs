@@ -1,5 +1,8 @@
 ﻿using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using SpotiMate.Cli;
+using SpotiMate.Handlers;
 
 namespace SpotiMate;
 
@@ -12,7 +15,13 @@ public class Program
             return await Parser.Default
                 .ParseArguments<FindDuplicatesOptions, SynchronizeArtistsOptions, SearchTracksOptions>(args)
                 .MapResult(
-                    (CliOptions options) => new CommandHandler().Handle(options),
+                    (CliOptions options) =>
+                    {
+                        var services = Bootstrapper.Bootstrap(options);
+                        var handler = services.GetRequiredService<ICommandHandler>();
+
+                        return handler.Handle(options);
+                    },
                     _ => Task.FromResult(1));
         }
         catch (Exception ex)
