@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotiMate", "SpotiMate\SpotiMate.csproj", "{041BB173-9D44-4EBF-9A50-A18E57124796}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotiMate.Spotify", "SpotiMate.Spotify\SpotiMate.Spotify.csproj", "{B90E9C7D-5EDA-4BCA-9F03-5489BBA0A91E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{041BB173-9D44-4EBF-9A50-A18E57124796}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{041BB173-9D44-4EBF-9A50-A18E57124796}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{041BB173-9D44-4EBF-9A50-A18E57124796}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B90E9C7D-5EDA-4BCA-9F03-5489BBA0A91E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B90E9C7D-5EDA-4BCA-9F03-5489BBA0A91E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B90E9C7D-5EDA-4BCA-9F03-5489BBA0A91E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B90E9C7D-5EDA-4BCA-9F03-5489BBA0A91E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -8,7 +8,16 @@
 
     <ItemGroup>
       <PackageReference Include="CommandLineParser" Version="2.9.1" />
-      <PackageReference Include="Flurl.Http" Version="4.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Resources\playlist.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SpotiMate.Spotify\SpotiMate.Spotify.csproj" />
     </ItemGroup>
 
 </Project>

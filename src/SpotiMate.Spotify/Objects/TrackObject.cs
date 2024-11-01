@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace SpotiMate.Spotify.Objects;
 
-public class TrackObject
+public class TrackObject : ISpotifyObject
 {
     [JsonPropertyName("id")]
     public string Id { get; set; }

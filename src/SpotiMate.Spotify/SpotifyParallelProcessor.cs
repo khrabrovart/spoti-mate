@@ -1,5 +1,4 @@
 using Flurl.Http;
-using SpotiMate.Cli;
 using SpotiMate.Spotify.Objects;
 using SpotiMate.Spotify.Responses;
 
@@ -13,23 +12,23 @@ public class SpotifyParallelProcessor
     private const int Default429DelayMs = 60000;
     private const int Default500DelayMs = 10000;
     
-    public async Task<TItem[]> GetAll<TResponse, TItem>(Func<IFlurlRequest> requestBuilder, int limit) 
+    public async Task<TItem[]> GetAll<TResponse, TItem>(Func<IFlurlRequest> requestBuilder, int pageSize)
         where TResponse : ISpotifyPageResponse<TItem>
         where TItem : ISpotifyObject
     {
-        var initRequest = MakePageRequest<TResponse>(requestBuilder(), limit, 0);
+        var initRequest = MakePageRequest<TResponse>(requestBuilder(), pageSize, 0);
         var initResponse = await WaitRequestWithRetries(initRequest);
         
         var total = initResponse.Total;
         var initResponseItems = initResponse.Items;
 
-        var remainingRequestsCount = (int)Math.Ceiling((total - initResponseItems.Length) / (double)limit);
+        var remainingRequestsCount = (int)Math.Ceiling((total - initResponseItems.Length) / (double)pageSize);
         var tasks = new List<Task<TResponse>>();
 
         for (var i = 0; i < remainingRequestsCount; i++)
         {
             tasks.Add(WaitRequestWithRetries(
-                MakePageRequest<TResponse>(requestBuilder(), limit, initResponseItems.Length + i * limit)));
+                MakePageRequest<TResponse>(requestBuilder(), pageSize, initResponseItems.Length + i * pageSize)));
 
             await Task.Delay(DelayBeforeSubsequentRequestMs);
         }
@@ -97,14 +96,14 @@ public class SpotifyParallelProcessor
                         {
                             var delay = int.Parse(retryAfter) + 1;
 
-                            CliPrint.PrintWarning(
-                                $"Request limit exceeded. Waiting for {retryAfter} seconds before retrying based on Retry-After header.");
+                            //.PrintWarning(
+                                //$"Request limit exceeded. Waiting for {retryAfter} seconds before retrying based on Retry-After header.");
 
                             await Task.Delay(delay * 1000);
                         }
                         else
                         {
-                            CliPrint.PrintWarning("No Retry-After header found. Waiting for 1 minute before retrying.");
+                            //CliPrint.PrintWarning("No Retry-After header found. Waiting for 1 minute before retrying.");
                             await Task.Delay(Default429DelayMs);
                         }
 
@@ -118,7 +117,7 @@ public class SpotifyParallelProcessor
                             throw new SpotifyClientException("Internal server error. Too many retries.");
                         }
 
-                        CliPrint.PrintWarning("Internal server error. Waiting for 10 seconds before retrying.");
+                        //CliPrint.PrintWarning("Internal server error. Waiting for 10 seconds before retrying.");
                         await Task.Delay(Default500DelayMs);
                         
                         continue;
