@@ -4,7 +4,7 @@ namespace SpotiMate.Services;
 
 public interface IArtistsService
 {
-    Task<bool> SynchronizeArtists(
+    Task<bool> FollowArtists(
         IEnumerable<SavedTrackObject> savedTracks,
         TimeSpan recency);
 }

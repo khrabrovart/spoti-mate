@@ -13,10 +13,10 @@ public class ArtistsService : IArtistsService
         _spotifyMeApi = spotifyMeApi;
     }
 
-    public async Task<bool> SynchronizeArtists(
-        IEnumerable<SavedTrackObject> savedTracks,
-        TimeSpan recency)
+    public async Task<bool> FollowArtists(IEnumerable<SavedTrackObject> savedTracks, TimeSpan recency)
     {
+        CliPrint.PrintInfo("Following artists");
+
         var uniqueArtists = savedTracks
             .Where(t => t.AddedAt >= DateTime.UtcNow - recency)
             .SelectMany(t => t.Track.Artists.Select(a => a.Id))
@@ -25,23 +25,35 @@ public class ArtistsService : IArtistsService
         
         if (uniqueArtists.Length == 0)
         {
-            CliPrint.PrintSuccess("No artists to synchronize");
+            CliPrint.PrintSuccess("No artists to follow");
             return true;
         }
         
-        CliPrint.PrintInfo($"Following {uniqueArtists.Length} artists");
-        
-        var followed = await _spotifyMeApi.FollowArtists(uniqueArtists);
-        
-        if (!followed.IsError)
+        CliPrint.PrintInfo($"Found {uniqueArtists.Length} unique artists");
+
+        const int chunkSize = 50;
+        var chunks = uniqueArtists.Chunk(chunkSize);
+
+        var overallSuccess = true;
+
+        foreach (var chunk in chunks)
         {
-            CliPrint.PrintSuccess("Artists synchronized");
+            var response = await _spotifyMeApi.FollowArtists(chunk);
+
+            if (!response.IsError)
+            {
+                continue;
+            }
+
+            CliPrint.PrintError($"Failed to follow artists: {response.Error}");
+            overallSuccess = false;
         }
-        else
+
+        if (overallSuccess)
         {
-            CliPrint.PrintError("Failed to synchronize artists");
+            CliPrint.PrintSuccess($"Successfully followed {uniqueArtists.Length} artists");
         }
-        
-        return !followed.IsError;
+
+        return overallSuccess;
     }
 }

@@ -38,7 +38,7 @@ public class SavedTracksService : ISavedTracksService
             offset += limit;
         }
 
-        CliPrint.PrintInfo($"Loaded {savedTracks.Count} saved tracks in {sw.Elapsed.TotalSeconds:F2}s");
+        CliPrint.PrintSuccess($"Loaded {savedTracks.Count} saved tracks in {sw.Elapsed.TotalSeconds:F2}s");
 
         return savedTracks.ToArray();
     }

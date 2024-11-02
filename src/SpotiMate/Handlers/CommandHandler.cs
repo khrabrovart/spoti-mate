@@ -46,15 +46,12 @@ public class CommandHandler : ICommandHandler
             options.DuplicatesPlaylistId,
             TimeSpan.FromDays(options.Days));
 
-
         if (!duplicatesFound)
         {
             return 1;
         }
 
-        CliPrint.PrintInfo($"Synchronizing artists for the last {options.Days} days");
-
-        var artistsSynchronized = await _artistsService.SynchronizeArtists(
+        var artistsSynchronized = await _artistsService.FollowArtists(
             savedTracks,
             TimeSpan.FromDays(options.Days));
 
