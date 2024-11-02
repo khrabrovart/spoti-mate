@@ -1,0 +1,29 @@
+name: Spotify Run All
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 3 * * SUN"
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: "true"
+  TERM: "xterm"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run
+        run: >-
+          dotnet run --project ./src/SpotiMate/SpotiMate.csproj -c Release
+          --
+          run-all
+          --client-id=${{secrets.CLIENT_ID}}
+          --client-secret=${{secrets.CLIENT_SECRET}}
+          --refresh-token=${{secrets.REFRESH_TOKEN}}
+          --duplicates-playlist-id=${{secrets.DUPLICATES_PLAYLIST_ID}}
+          --days=${{vars.RECENCY_DAYS}}
