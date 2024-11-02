@@ -28,18 +28,27 @@ public class DuplicatesService : IDuplicatesService
         CliPrint.PrintInfo($"Found {duplicates.Length} duplicates");
         CliPrint.PrintInfo("Adding duplicates to playlist");
 
-        var result = await _spotifyPlaylistsApi.AddTracksToPlaylist(duplicatesPlaylistId, duplicates);
-        
-        if (!result.IsError)
+        const int chunkSize = 100;
+        var chunks = duplicates.Chunk(chunkSize);
+
+        var overallSuccess = true;
+
+        foreach (var chunk in chunks)
         {
-            CliPrint.PrintSuccess("Duplicates added to playlist");
+            var result = await _spotifyPlaylistsApi.AddTracksToPlaylist(duplicatesPlaylistId, chunk);
+
+            if (result.IsError)
+            {
+                CliPrint.PrintError("Failed to add duplicates to playlist");
+                overallSuccess = false;
+            }
+            else
+            {
+                CliPrint.PrintInfo($"Added {chunk.Length} duplicates to playlist");
+            }
         }
-        else
-        {
-            CliPrint.PrintError("Failed to add duplicates to playlist");
-        }
-        
-        return !result.IsError;
+
+        return overallSuccess;
     }
     
     private static string[] GetDuplicates(IEnumerable<SavedTrackObject> savedTracks, TimeSpan recency)
@@ -87,7 +96,7 @@ public class DuplicatesService : IDuplicatesService
             duplicates.AddRange(orderedDuplicates);
         }
         
-        return duplicates.ToArray();
+        return duplicates.Distinct().ToArray();
     }
     
     private static (string Id, string Name, string[] Artists, int Popularity, DateTime AddedAt) PrepareTrack(SavedTrackObject track)
