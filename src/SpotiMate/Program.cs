@@ -1,6 +1,5 @@
 ﻿using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using SpotiMate.Cli;
 using SpotiMate.Handlers;
 
@@ -13,7 +12,7 @@ public class Program
         try
         {
             return await Parser.Default
-                .ParseArguments<FindDuplicatesOptions, SynchronizeArtistsOptions, SearchTracksOptions>(args)
+                .ParseArguments<RunAllOptions, SearchTracksOptions>(args)
                 .MapResult(
                     (CliOptions options) =>
                     {

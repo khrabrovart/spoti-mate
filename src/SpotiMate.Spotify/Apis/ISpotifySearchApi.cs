@@ -1,8 +1,8 @@
-using SpotiMate.Spotify.Responses;
+using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Spotify.Apis;
 
 public interface ISpotifySearchApi
 {
-    Task<SpotifySearchResponse> SearchTracks(string query, int limit = 50, int offset = 0);
+    Task<ApiResponse<SearchResults>> SearchTracks(string query, int offset, int limit);
 }

@@ -1,37 +1,29 @@
-using Flurl;
-using Flurl.Http;
-using SpotiMate.Spotify.Authorization;
-using SpotiMate.Spotify.Responses;
+using SpotiMate.Spotify.Models;
+using SpotiMate.Spotify.Providers;
 
 namespace SpotiMate.Spotify.Apis;
 
-public class SpotifySearchApi : ISpotifySearchApi
+public class SpotifySearchApi : SpotifyApiBase, ISpotifySearchApi
 {
-    private readonly string _accessToken;
-
-    public SpotifySearchApi(SpotifyAccessToken accessToken)
+    public SpotifySearchApi(ISpotifyAuthProvider authProvider) : base(authProvider, "search")
     {
-        _accessToken = accessToken;
     }
 
-    private IFlurlRequest CreateApiRequest(string segment, Dictionary<string, string> queryParams = null)
+    public async Task<ApiResponse<SearchResults>> SearchTracks(string query, int offset, int limit)
     {
-        return SpotifyEndpoints.Api
-            .AppendPathSegment(segment)
-            .SetQueryParams(queryParams)
-            .WithOAuthBearerToken(_accessToken);
-    }
+        FieldValidator.Int32(nameof(offset), offset, min: 0, max: 1000);
+        FieldValidator.Int32(nameof(limit), limit, min: 0, max: 50);
 
-    public async Task<SpotifySearchResponse> SearchTracks(string query, int limit = 50, int offset = 0)
-    {
         var queryParams = new Dictionary<string, string>
         {
             { "q", query },
             { "type", "track" },
-            { "limit", limit.ToString() },
-            { "offset", offset.ToString() }
+            { "offset", offset.ToString() },
+            { "limit", limit.ToString() }
         };
 
-        return await CreateApiRequest("search", queryParams).GetJsonAsync<SpotifySearchResponse>();
+        return await MakeRequest<SearchResults>(
+            HttpMethod.Get,
+            queryParams: queryParams);
     }
 }

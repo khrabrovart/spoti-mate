@@ -1,15 +1,24 @@
 using SpotiMate.Cli;
 using SpotiMate.Services;
-using SpotiMate.Spotify;
 
 namespace SpotiMate.Handlers;
 
 public class CommandHandler : ICommandHandler
 {
+    private readonly ISavedTracksService _savedTracksService;
+    private readonly IDuplicatesService _duplicatesService;
+    private readonly IArtistsService _artistsService;
     private readonly ISearchService _searchService;
 
-    public CommandHandler(ISearchService searchService)
+    public CommandHandler(
+        ISavedTracksService savedTracksService,
+        IDuplicatesService duplicatesService,
+        IArtistsService artistsService,
+        ISearchService searchService)
     {
+        _savedTracksService = savedTracksService;
+        _duplicatesService = duplicatesService;
+        _artistsService = artistsService;
         _searchService = searchService;
     }
 
@@ -17,68 +26,45 @@ public class CommandHandler : ICommandHandler
     {
         return options switch
         {
-            FindDuplicatesOptions findDuplicatesOptions => await FindDuplicates(findDuplicatesOptions),
-            SynchronizeArtistsOptions synchronizeArtistsOptions => await SynchronizeArtists(synchronizeArtistsOptions),
-            SearchTracksOptions searchTracksOptions => await SearchTracks(searchTracksOptions),
+            RunAllOptions runAllOptions => await RunAll(runAllOptions),
+            SearchTracksOptions => await SearchTracks(),
             _ => throw new InvalidOperationException()
         };
     }
 
-    private async Task<int> FindDuplicates(FindDuplicatesOptions options)
+    private async Task<int> RunAll(RunAllOptions options)
     {
-        var spotify = await GetSpotifyClient(options);
-
-        CliPrint.PrintInfo($"Finding duplicates for the last {options.Days} days...");
-
-        var savedTracks = await new SavedTracksService().GetSavedTracks(spotify);
+        var savedTracks = await _savedTracksService.GetSavedTracks();
 
         if (savedTracks == null || savedTracks.Length == 0)
         {
             return 1;
         }
 
-        var result = await new DuplicatesService().FindDuplicates(
-            spotify,
+        var duplicatesFound = await _duplicatesService.FindDuplicates(
             savedTracks,
             options.DuplicatesPlaylistId,
             TimeSpan.FromDays(options.Days));
 
-        return result ? 0 : 1;
-    }
 
-    private async Task<int> SynchronizeArtists(SynchronizeArtistsOptions options)
-    {
-        var spotify = await GetSpotifyClient(options);
-
-        CliPrint.PrintInfo($"Synchronizing artists for the last {options.Days} days...");
-
-        var savedTracks = await new SavedTracksService().GetSavedTracks(spotify);
-
-        if (savedTracks == null || savedTracks.Length == 0)
+        if (!duplicatesFound)
         {
             return 1;
         }
 
-        var result = await new ArtistsService().SynchronizeArtists(
-            spotify,
+        CliPrint.PrintInfo($"Synchronizing artists for the last {options.Days} days");
+
+        var artistsSynchronized = await _artistsService.SynchronizeArtists(
             savedTracks,
             TimeSpan.FromDays(options.Days));
 
-        return result ? 0 : 1;
+        return artistsSynchronized ? 0 : 1;
     }
 
-    private async Task<int> SearchTracks(SearchTracksOptions options)
+    private async Task<int> SearchTracks()
     {
         await _searchService.SearchTracks();
 
         return 0;
-    }
-
-    private async Task<SpotifyClient> GetSpotifyClient(CliOptions options)
-    {
-        var spotify = new SpotifyClient();
-        await spotify.Authorize(options.ClientId, options.ClientSecret, options.RefreshToken);
-
-        return spotify;
     }
 }

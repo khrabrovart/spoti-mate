@@ -2,10 +2,10 @@ using CommandLine;
 
 namespace SpotiMate.Cli;
 
-[Verb("find-duplicates", HelpText = "Find duplicates in saved tracks.")]
-public class FindDuplicatesOptions : CliOptions
+[Verb("run-all", HelpText = "Run all commands one by one.")]
+public class RunAllOptions : CliOptions
 {
-    [Option("days", Required = true, HelpText = "Number of days to search for duplicates.")]
+    [Option("days", Required = true, HelpText = "Number of days to run commands for.")]
     public int Days { get; set; }
     
     [Option("duplicates-playlist-id", Required = true, HelpText = "ID of the playlist to add duplicates to.")]

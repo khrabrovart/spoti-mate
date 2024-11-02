@@ -1,13 +1,19 @@
 using SpotiMate.Cli;
-using SpotiMate.Spotify;
-using SpotiMate.Spotify.Objects;
+using SpotiMate.Spotify.Apis;
+using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Services;
 
-public class ArtistsService
+public class ArtistsService : IArtistsService
 {
+    private readonly ISpotifyMeApi _spotifyMeApi;
+
+    public ArtistsService(ISpotifyMeApi spotifyMeApi)
+    {
+        _spotifyMeApi = spotifyMeApi;
+    }
+
     public async Task<bool> SynchronizeArtists(
-        SpotifyClient spotify, 
         IEnumerable<SavedTrackObject> savedTracks,
         TimeSpan recency)
     {
@@ -19,23 +25,23 @@ public class ArtistsService
         
         if (uniqueArtists.Length == 0)
         {
-            CliPrint.PrintSuccess("No artists to synchronize.");
+            CliPrint.PrintSuccess("No artists to synchronize");
             return true;
         }
         
-        CliPrint.PrintInfo($"Following {uniqueArtists.Length} artists...");
+        CliPrint.PrintInfo($"Following {uniqueArtists.Length} artists");
         
-        var followed = await spotify.FollowArtists(uniqueArtists);
+        var followed = await _spotifyMeApi.FollowArtists(uniqueArtists);
         
-        if (followed)
+        if (!followed.IsError)
         {
-            CliPrint.PrintSuccess("Artists synchronized.");
+            CliPrint.PrintSuccess("Artists synchronized");
         }
         else
         {
-            CliPrint.PrintError("Failed to synchronize artists.");
+            CliPrint.PrintError("Failed to synchronize artists");
         }
         
-        return followed;
+        return !followed.IsError;
     }
 }

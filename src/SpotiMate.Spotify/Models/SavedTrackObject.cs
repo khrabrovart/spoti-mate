@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace SpotiMate.Spotify.Objects;
+namespace SpotiMate.Spotify.Models;
 
-public class SavedTrackObject : ISpotifyObject
+public class SavedTrackObject
 {
     [JsonPropertyName("added_at")]
     public DateTime AddedAt { get; set; }

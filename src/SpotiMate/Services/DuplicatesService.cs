@@ -1,44 +1,48 @@
 using SpotiMate.Cli;
-using SpotiMate.Spotify;
-using SpotiMate.Spotify.Objects;
+using SpotiMate.Spotify.Apis;
+using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Services;
 
-public class DuplicatesService
+public class DuplicatesService : IDuplicatesService
 {
-    public async Task<bool> FindDuplicates(
-        SpotifyClient spotify, 
-        SavedTrackObject[] savedTracks, 
-        string duplicatesPlaylistId,
-        TimeSpan recency)
+    private readonly ISpotifyPlaylistsApi _spotifyPlaylistsApi;
+
+    public DuplicatesService(ISpotifyPlaylistsApi spotifyPlaylistsApi)
     {
-        CliPrint.PrintInfo("Checking for duplicates...");
+        _spotifyPlaylistsApi = spotifyPlaylistsApi;
+    }
+
+    public async Task<bool> FindDuplicates(SavedTrackObject[] savedTracks, string duplicatesPlaylistId, TimeSpan recency)
+    {
+        CliPrint.PrintInfo("Checking for duplicates");
         
         var duplicates = GetDuplicates(savedTracks, recency);
         
-        if (duplicates.Count == 0)
+        if (duplicates.Length == 0)
         {
-            CliPrint.PrintInfo("No duplicates found.");
+            CliPrint.PrintInfo("No duplicates found");
             return true;
         }
         
-        CliPrint.PrintInfo($"Found {duplicates.Count} duplicates.");
-        CliPrint.PrintInfo("Adding duplicates to playlist...");
-        var result = await spotify.AddTracksToPlaylist(duplicatesPlaylistId, duplicates);
+        CliPrint.PrintInfo($"Found {duplicates.Length} duplicates");
+        CliPrint.PrintInfo("Adding duplicates to playlist");
+
+        var result = await _spotifyPlaylistsApi.AddTracksToPlaylist(duplicatesPlaylistId, duplicates);
         
-        if (result)
+        if (!result.IsError)
         {
-            CliPrint.PrintSuccess("Duplicates added to playlist.");
+            CliPrint.PrintSuccess("Duplicates added to playlist");
         }
         else
         {
-            CliPrint.PrintError("Failed to add duplicates to playlist.");
+            CliPrint.PrintError("Failed to add duplicates to playlist");
         }
         
-        return result;
+        return !result.IsError;
     }
     
-    private static List<string> GetDuplicates(IEnumerable<SavedTrackObject> savedTracks, TimeSpan recency)
+    private static string[] GetDuplicates(IEnumerable<SavedTrackObject> savedTracks, TimeSpan recency)
     {
         var preparedTracks = savedTracks
             .Select(PrepareTrack)
@@ -83,7 +87,7 @@ public class DuplicatesService
             duplicates.AddRange(orderedDuplicates);
         }
         
-        return duplicates;
+        return duplicates.ToArray();
     }
     
     private static (string Id, string Name, string[] Artists, int Popularity, DateTime AddedAt) PrepareTrack(SavedTrackObject track)

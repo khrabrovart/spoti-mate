@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace SpotiMate.Spotify.Objects;
+namespace SpotiMate.Spotify.Models;
 
-public class TrackObject : ISpotifyObject
+public class TrackObject
 {
     [JsonPropertyName("id")]
     public string Id { get; set; }

@@ -1,7 +1,6 @@
 using SpotiMate.Cli;
 using SpotiMate.Spotify.Apis;
-using SpotiMate.Spotify.Authorization;
-using SpotiMate.Spotify.Objects;
+using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Services;
 
@@ -30,9 +29,9 @@ public class SearchService : ISearchService
 
             var q = $"artist:{artist} track:{title}";
 
-            var searchResponse = await _spotifySearchApi.SearchTracks(q);
+            var searchResponse = await _spotifySearchApi.SearchTracks(q, 0, 50);
 
-            var foundTrack = searchResponse.Tracks.Items.FirstOrDefault();
+            var foundTrack = searchResponse.Data.Tracks.Items.FirstOrDefault();
 
             CliPrint.PrintInfo(track);
 

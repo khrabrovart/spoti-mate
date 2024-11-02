@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace SpotiMate.Spotify.Responses;
+namespace SpotiMate.Spotify.Models;
 
-public class TokenResponse
+public class AuthorizationData
 {
     [JsonPropertyName("access_token")]
     public string AccessToken { get; set; }

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SpotiMate.Spotify.Objects;
+namespace SpotiMate.Spotify.Models;
 
 public class ArtistObject
 {

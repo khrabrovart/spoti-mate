@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using SpotiMate.Cli;
 using SpotiMate.Handlers;
 using SpotiMate.Services;
-using SpotiMate.Spotify.Authorization;
+using SpotiMate.Spotify.Extensions;
 
 namespace SpotiMate;
 
@@ -22,20 +22,13 @@ public class Bootstrapper
     private static void ConfigureServices(IServiceCollection services, CliOptions options)
     {
         services
-            .AddSingleton(async () => await GetSpotifyAccessToken(options))
             .AddTransient<ICommandHandler, CommandHandler>()
-            .AddTransient<ISearchService, SearchService>();
-    }
 
-    private static async Task<SpotifyAccessToken> GetSpotifyAccessToken(CliOptions options)
-    {
-        var accessToken = await SpotifyAuthorizer.Authorize(options.ClientId, options.ClientSecret, options.RefreshToken);
+            .AddTransient<ISavedTracksService, SavedTracksService>()
+            .AddTransient<IDuplicatesService, DuplicatesService>()
+            .AddTransient<IArtistsService, ArtistsService>()
+            .AddTransient<ISearchService, SearchService>()
 
-        if (accessToken == null)
-        {
-            throw new Exception("Failed to authorize with Spotify. Please check your credentials and try again.");
-        }
-
-        return accessToken;
+            .AddSpotify(options.ClientId, options.ClientSecret, options.RefreshToken);
     }
 }
