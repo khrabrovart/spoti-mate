@@ -15,7 +15,7 @@ public class ArtistsService : IArtistsService
 
     public async Task<bool> FollowArtists(IEnumerable<SavedTrackObject> savedTracks, TimeSpan recency)
     {
-        CliPrint.PrintInfo("Following artists");
+        CliPrint.Info("Following artists");
 
         var uniqueArtists = savedTracks
             .Where(t => t.AddedAt >= DateTime.UtcNow - recency)
@@ -25,11 +25,11 @@ public class ArtistsService : IArtistsService
         
         if (uniqueArtists.Length == 0)
         {
-            CliPrint.PrintSuccess("No artists to follow");
+            CliPrint.Success("No artists to follow");
             return true;
         }
         
-        CliPrint.PrintInfo($"Found {uniqueArtists.Length} unique artists");
+        CliPrint.Info($"Found {uniqueArtists.Length} unique artists");
 
         const int chunkSize = 50;
         var chunks = uniqueArtists.Chunk(chunkSize);
@@ -45,13 +45,13 @@ public class ArtistsService : IArtistsService
                 continue;
             }
 
-            CliPrint.PrintError($"Failed to follow artists: {response.Error}");
+            CliPrint.Error($"Failed to follow artists: {response.Error}");
             overallSuccess = false;
         }
 
         if (overallSuccess)
         {
-            CliPrint.PrintSuccess($"Successfully followed {uniqueArtists.Length} artists");
+            CliPrint.Success($"Successfully followed {uniqueArtists.Length} artists");
         }
 
         return overallSuccess;

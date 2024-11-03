@@ -9,7 +9,7 @@ public class ApiResponse<TResponse> : ApiResponse
 
 public class ApiResponse
 {
-    public HttpStatusCode Status { get; set; }
+    public HttpStatusCode StatusCode { get; set; }
 
     public bool IsError { get; set; }
 

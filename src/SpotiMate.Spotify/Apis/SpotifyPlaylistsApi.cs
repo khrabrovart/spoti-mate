@@ -12,8 +12,8 @@ public class SpotifyPlaylistsApi : SpotifyApiBase, ISpotifyPlaylistsApi
 
     public async Task<ApiResponse<Page<PlaylistTrackObject>>> GetPlaylistTracks(string playlistId, int offset, int limit)
     {
-        FieldValidator.Int32(nameof(offset), offset, min: 0);
-        FieldValidator.Int32(nameof(limit), limit, min: 0, max: 50);
+        FieldValidator.Int(nameof(offset), offset, min: 0);
+        FieldValidator.Int(nameof(limit), limit, min: 0, max: 50);
 
         var queryParams = new Dictionary<string, string>
         {

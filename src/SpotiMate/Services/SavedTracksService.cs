@@ -16,7 +16,7 @@ public class SavedTracksService : ISavedTracksService
 
     public async Task<SavedTrackObject[]> GetSavedTracks()
     {
-        CliPrint.PrintInfo("Loading saved tracks");
+        CliPrint.Info("Loading saved tracks");
 
         var savedTracks = new List<SavedTrackObject>();
 
@@ -38,7 +38,7 @@ public class SavedTracksService : ISavedTracksService
             offset += limit;
         }
 
-        CliPrint.PrintSuccess($"Loaded {savedTracks.Count} saved tracks in {sw.Elapsed.TotalSeconds:F2}s");
+        CliPrint.Success($"Loaded {savedTracks.Count} saved tracks in {sw.Elapsed.TotalSeconds:F2}s");
 
         return savedTracks.ToArray();
     }

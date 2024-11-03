@@ -4,5 +4,5 @@ namespace SpotiMate.Spotify.Providers;
 
 public interface ISpotifyAuthProvider
 {
-    Task<AccessToken> GetAccessToken();
+    Task<string> GetAccessToken();
 }

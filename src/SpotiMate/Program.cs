@@ -25,7 +25,7 @@ public class Program
         }
         catch (Exception ex)
         {
-            CliPrint.PrintError(ex.ToString());
+            CliPrint.Error(ex.ToString());
             return 1;
         }
     }

@@ -2,7 +2,7 @@ namespace SpotiMate.Spotify;
 
 static internal class FieldValidator
 {
-    public static void Int32(string name, int value, int? min = null, int? max = null)
+    public static void Int(string name, int value, int? min = null, int? max = null)
     {
         if (value < min || value > max)
         {

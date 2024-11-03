@@ -27,7 +27,7 @@ public class CommandHandler : ICommandHandler
         return options switch
         {
             RunAllOptions runAllOptions => await RunAll(runAllOptions),
-            SearchTracksOptions => await SearchTracks(),
+            SearchTracksOptions searchTracksOptions => await SearchTracks(searchTracksOptions),
             _ => throw new InvalidOperationException()
         };
     }
@@ -41,27 +41,25 @@ public class CommandHandler : ICommandHandler
             return 1;
         }
 
-        var duplicatesFound = await _duplicatesService.FindDuplicates(
+        var duplicatesProcessed = await _duplicatesService.FindDuplicates(
             savedTracks,
             options.DuplicatesPlaylistId,
             TimeSpan.FromDays(options.Days));
-
-        if (!duplicatesFound)
-        {
-            return 1;
-        }
 
         var artistsSynchronized = await _artistsService.FollowArtists(
             savedTracks,
             TimeSpan.FromDays(options.Days));
 
-        return artistsSynchronized ? 0 : 1;
+        return duplicatesProcessed && artistsSynchronized ? 0 : 1;
     }
 
-    private async Task<int> SearchTracks()
+    private async Task<int> SearchTracks(SearchTracksOptions options)
     {
-        await _searchService.SearchTracks();
+        var filePath = Path.Combine(Environment.CurrentDirectory, "Resources", "User", "playlist.txt");
+        var trackNames = await File.ReadAllLinesAsync(filePath);
 
-        return 0;
+        var success = await _searchService.SearchAndSaveTracks(trackNames, options.AddToPlaylistId, options.OpenAIApiKey);
+
+        return success ? 0 : 1;
     }
 }

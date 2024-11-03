@@ -10,7 +10,7 @@ public class SpotifyAuthProvider : ISpotifyAuthProvider
     private readonly string _clientSecret;
     private readonly string _refreshToken;
 
-    private AccessToken _accessToken;
+    private string _accessToken;
 
     public SpotifyAuthProvider(string clientId, string clientSecret, string refreshToken)
     {
@@ -19,7 +19,7 @@ public class SpotifyAuthProvider : ISpotifyAuthProvider
         _refreshToken = refreshToken;
     }
 
-    public async Task<AccessToken> GetAccessToken()
+    public async Task<string> GetAccessToken()
     {
         _accessToken ??= await RefreshAccessToken();
 
@@ -31,7 +31,7 @@ public class SpotifyAuthProvider : ISpotifyAuthProvider
         return _accessToken;
     }
 
-    private async Task<AccessToken> RefreshAccessToken()
+    private async Task<string> RefreshAccessToken()
     {
         try
         {

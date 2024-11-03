@@ -13,12 +13,22 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Resources\playlist.txt">
+      <None Update="Resources\UserData\playlist.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Service\prompt.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Application\Search\prompt.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\User\playlist.txt">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\SpotiMate.OpenAI\SpotiMate.OpenAI.csproj" />
       <ProjectReference Include="..\SpotiMate.Spotify\SpotiMate.Spotify.csproj" />
     </ItemGroup>
 

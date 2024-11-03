@@ -25,7 +25,7 @@ static internal class ResponseExtensions
 
     private static async Task ResolveCommonFields(IFlurlResponse response, ApiResponse apiResponse)
     {
-        apiResponse.Status = (HttpStatusCode)response.StatusCode;
+        apiResponse.StatusCode = (HttpStatusCode)response.StatusCode;
         apiResponse.IsError = response.StatusCode is < 200 or > 299;
         apiResponse.Error = apiResponse.IsError ? (await response.GetJsonAsync<ApiError>()).Message : default;
         apiResponse.RetryAfter = ResolveRetryAfter(response);

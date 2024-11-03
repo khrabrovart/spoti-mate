@@ -2,5 +2,5 @@ namespace SpotiMate.Services;
 
 public interface ISearchService
 {
-    Task SearchTracks();
+    Task<bool> SearchAndSaveTracks(string[] trackNames, string addToPlaylistId, string openAIApiKey);
 }

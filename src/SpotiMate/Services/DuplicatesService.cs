@@ -15,17 +15,17 @@ public class DuplicatesService : IDuplicatesService
 
     public async Task<bool> FindDuplicates(SavedTrackObject[] savedTracks, string duplicatesPlaylistId, TimeSpan recency)
     {
-        CliPrint.PrintInfo("Checking duplicates");
+        CliPrint.Info("Checking duplicates");
         
         var duplicates = GetDuplicates(savedTracks, recency);
         
         if (duplicates.Length == 0)
         {
-            CliPrint.PrintSuccess("No duplicates found");
+            CliPrint.Success("No duplicates found");
             return true;
         }
         
-        CliPrint.PrintInfo($"Found {duplicates.Length} duplicates");
+        CliPrint.Info($"Found {duplicates.Length} duplicates");
 
         const int chunkSize = 100;
         var chunks = duplicates.Chunk(chunkSize);
@@ -41,13 +41,13 @@ public class DuplicatesService : IDuplicatesService
                 continue;
             }
 
-            CliPrint.PrintError($"Failed to add duplicates to playlist: {result.Error}");
+            CliPrint.Error($"Failed to add duplicates to playlist: {result.Error}");
             overallSuccess = false;
         }
 
         if (overallSuccess)
         {
-            CliPrint.PrintSuccess($"Successfully added {duplicates.Length} duplicates to playlist");
+            CliPrint.Success($"Successfully added {duplicates.Length} duplicates to playlist");
         }
 
         return overallSuccess;

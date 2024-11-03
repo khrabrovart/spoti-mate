@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SpotiMate.Cli;
 using SpotiMate.Handlers;
+using SpotiMate.OpenAI.Extensions;
 using SpotiMate.Services;
 using SpotiMate.Spotify.Extensions;
 
@@ -29,6 +30,7 @@ public class Bootstrapper
             .AddTransient<IArtistsService, ArtistsService>()
             .AddTransient<ISearchService, SearchService>()
 
-            .AddSpotify(options.ClientId, options.ClientSecret, options.RefreshToken);
+            .AddSpotify(options.ClientId, options.ClientSecret, options.RefreshToken)
+            .AddOpenAI();
     }
 }

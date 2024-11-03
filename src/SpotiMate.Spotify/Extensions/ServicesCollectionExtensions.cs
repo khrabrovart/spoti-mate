@@ -6,12 +6,14 @@ namespace SpotiMate.Spotify.Extensions;
 
 public static class ServicesCollectionExtensions
 {
-    public static void AddSpotify(this IServiceCollection services, string clientId, string clientSecret, string refreshToken)
+    public static IServiceCollection AddSpotify(this IServiceCollection services, string clientId, string clientSecret, string refreshToken)
     {
         services
             .AddTransient<ISpotifyMeApi, SpotifyMeApi>()
             .AddTransient<ISpotifyPlaylistsApi, SpotifyPlaylistsApi>()
             .AddTransient<ISpotifySearchApi, SpotifySearchApi>()
             .AddSingleton<ISpotifyAuthProvider>(_ => new SpotifyAuthProvider(clientId, clientSecret, refreshToken));
+
+        return services;
     }
 }

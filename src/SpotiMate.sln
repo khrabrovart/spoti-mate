@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotiMate", "SpotiMate\Spot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotiMate.Spotify", "SpotiMate.Spotify\SpotiMate.Spotify.csproj", "{B90E9C7D-5EDA-4BCA-9F03-5489BBA0A91E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotiMate.OpenAI", "SpotiMate.OpenAI\SpotiMate.OpenAI.csproj", "{D3385C0D-590A-4727-B9EE-143A9B20C5FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{B90E9C7D-5EDA-4BCA-9F03-5489BBA0A91E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B90E9C7D-5EDA-4BCA-9F03-5489BBA0A91E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B90E9C7D-5EDA-4BCA-9F03-5489BBA0A91E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3385C0D-590A-4727-B9EE-143A9B20C5FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3385C0D-590A-4727-B9EE-143A9B20C5FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3385C0D-590A-4727-B9EE-143A9B20C5FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3385C0D-590A-4727-B9EE-143A9B20C5FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
