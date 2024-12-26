@@ -2,7 +2,7 @@ using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Services;
 
-public interface ISavedTracksService
+public interface ISavedTrackService
 {
     Task<SavedTrackObject[]> GetSavedTracks();
 }

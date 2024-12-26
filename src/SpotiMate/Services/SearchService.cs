@@ -19,24 +19,36 @@ public class SearchService : ISearchService
         _openAIChatService = openAIChatService;
     }
 
-    public async Task<bool> SearchAndSaveTracks(string[] trackNames, string addToPlaylistId, string openAIApiKey)
+    public async Task<string[]> SearchTracks(string[] trackNames, string openAIApiKey)
     {
         var cache = await ReadCache();
 
+        var tracksIds = new List<string>();
+        var notFoundTracks = new List<string>();
+
         foreach (var trackName in trackNames)
         {
-            if (cache.TryGetValue(trackName, out var cachedTrackId) && !string.IsNullOrEmpty(cachedTrackId))
+            if (cache.TryGetValue(trackName, out var cachedTrackId))
             {
+                tracksIds.Add(cachedTrackId);
                 continue;
             }
 
             var searchResponse = await _spotifySearchApi.SearchTracks(trackName, 0, 5);
+
+            if (searchResponse.IsError)
+            {
+                CliPrint.Error($"Failed to search for track: {searchResponse.Error}");
+                return [];
+            }
+
             var foundTracks = searchResponse.Data.Tracks.Items;
 
             if (foundTracks.Length == 0)
             {
                 CliPrint.Info(trackName);
-                await WriteCache(trackName, " ");
+                await WriteCache(trackName, string.Empty);
+                notFoundTracks.Add(trackName);
                 CliPrint.Warning("Track is not found on Spotify, skipping");
                 CliPrint.EmptyLine();
                 continue;
@@ -78,16 +90,14 @@ public class SearchService : ISearchService
                     }
 
                     await WriteCache(trackName, track.Id);
+                    tracksIds.Add(track.Id);
                     CliPrint.Success("Track selection confirmed");
                     break;
 
-                case ConsoleKey.F when key.Modifiers.HasFlag(ConsoleModifiers.Shift):
-                    await WriteCache(trackName, " ");
-                    CliPrint.Warning("Secret command detected, track selection skipped with empty cache set");
-                    break;
-
                 case ConsoleKey.Backspace:
-                    CliPrint.Warning("Track selection skipped");
+                    await WriteCache(trackName, string.Empty);
+                    notFoundTracks.Add(trackName);
+                    CliPrint.Warning("Track selection skipped with empty cache set");
                     break;
 
                 case ConsoleKey.D1:
@@ -105,6 +115,7 @@ public class SearchService : ISearchService
 
                     track = foundTracks[index - 1];
                     await WriteCache(trackName, track.Id);
+                    tracksIds.Add(track.Id);
                     CliPrint.Success(ComposeTrackString(track));
                     CliPrint.Success("Track selection confirmed");
                     break;
@@ -117,7 +128,18 @@ public class SearchService : ISearchService
             CliPrint.EmptyLine();
         }
 
-        return true;
+        if (notFoundTracks.Count > 0)
+        {
+            CliPrint.Warning("Tracks not found on Spotify:");
+            CliPrint.Warning(string.Join(Environment.NewLine, notFoundTracks));
+        }
+
+        CliPrint.Success($"Track search completed, found {tracksIds.Count} tracks");
+
+        return tracksIds
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct()
+            .ToArray();
     }
 
     private static string ComposeTrackSelectionString(string trackName, TrackObject[] foundTracks)

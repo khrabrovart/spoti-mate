@@ -2,7 +2,7 @@ using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Services;
 
-public interface IArtistsService
+public interface IArtistService
 {
     Task<bool> FollowArtists(
         IEnumerable<SavedTrackObject> savedTracks,

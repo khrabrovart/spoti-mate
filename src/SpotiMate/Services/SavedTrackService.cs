@@ -5,11 +5,11 @@ using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Services;
 
-public class SavedTracksService : ISavedTracksService
+public class SavedTrackService : ISavedTrackService
 {
     private readonly ISpotifyMeApi _spotifyMeApi;
 
-    public SavedTracksService(ISpotifyMeApi spotifyMeApi)
+    public SavedTrackService(ISpotifyMeApi spotifyMeApi)
     {
         _spotifyMeApi = spotifyMeApi;
     }

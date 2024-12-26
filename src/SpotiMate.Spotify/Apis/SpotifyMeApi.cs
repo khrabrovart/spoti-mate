@@ -9,6 +9,11 @@ public class SpotifyMeApi : SpotifyApiBase, ISpotifyMeApi
     {
     }
 
+    public async Task<ApiResponse<UserProfile>> GetCurrentUserProfile()
+    {
+        return await MakeRequest<UserProfile>(HttpMethod.Get);
+    }
+
     public async Task<ApiResponse<Page<SavedTrackObject>>> GetSavedTracks(int offset, int limit)
     {
         FieldValidator.Int(nameof(offset), offset, min: 0);

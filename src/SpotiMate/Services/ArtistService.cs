@@ -4,11 +4,11 @@ using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Services;
 
-public class ArtistsService : IArtistsService
+public class ArtistService : IArtistService
 {
     private readonly ISpotifyMeApi _spotifyMeApi;
 
-    public ArtistsService(ISpotifyMeApi spotifyMeApi)
+    public ArtistService(ISpotifyMeApi spotifyMeApi)
     {
         _spotifyMeApi = spotifyMeApi;
     }

@@ -27,7 +27,7 @@ static internal class ResponseExtensions
     {
         apiResponse.StatusCode = (HttpStatusCode)response.StatusCode;
         apiResponse.IsError = response.StatusCode is < 200 or > 299;
-        apiResponse.Error = apiResponse.IsError ? (await response.GetJsonAsync<ApiError>()).Message : default;
+        apiResponse.Error = apiResponse.IsError ? await response.GetStringAsync() : default;
         apiResponse.RetryAfter = ResolveRetryAfter(response);
     }
 

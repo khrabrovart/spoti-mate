@@ -5,21 +5,24 @@ namespace SpotiMate.Handlers;
 
 public class CommandHandler : ICommandHandler
 {
-    private readonly ISavedTracksService _savedTracksService;
-    private readonly IDuplicatesService _duplicatesService;
-    private readonly IArtistsService _artistsService;
+    private readonly ISavedTrackService _savedTrackService;
+    private readonly IDuplicateService _duplicateService;
+    private readonly IArtistService _artistService;
     private readonly ISearchService _searchService;
+    private readonly IPlaylistService _playlistService;
 
     public CommandHandler(
-        ISavedTracksService savedTracksService,
-        IDuplicatesService duplicatesService,
-        IArtistsService artistsService,
-        ISearchService searchService)
+        ISavedTrackService savedTrackService,
+        IDuplicateService duplicateService,
+        IArtistService artistService,
+        ISearchService searchService,
+        IPlaylistService playlistService)
     {
-        _savedTracksService = savedTracksService;
-        _duplicatesService = duplicatesService;
-        _artistsService = artistsService;
+        _savedTrackService = savedTrackService;
+        _duplicateService = duplicateService;
+        _artistService = artistService;
         _searchService = searchService;
+        _playlistService = playlistService;
     }
 
     public async Task<int> Handle(CliOptions options)
@@ -34,19 +37,19 @@ public class CommandHandler : ICommandHandler
 
     private async Task<int> RunAll(RunAllOptions options)
     {
-        var savedTracks = await _savedTracksService.GetSavedTracks();
+        var savedTracks = await _savedTrackService.GetSavedTracks();
 
         if (savedTracks == null || savedTracks.Length == 0)
         {
             return 1;
         }
 
-        var duplicatesProcessed = await _duplicatesService.FindDuplicates(
+        var duplicatesProcessed = await _duplicateService.FindDuplicates(
             savedTracks,
             options.DuplicatesPlaylistId,
             TimeSpan.FromDays(options.Days));
 
-        var artistsSynchronized = await _artistsService.FollowArtists(
+        var artistsSynchronized = await _artistService.FollowArtists(
             savedTracks,
             TimeSpan.FromDays(options.Days));
 
@@ -58,7 +61,21 @@ public class CommandHandler : ICommandHandler
         var filePath = Path.Combine(Environment.CurrentDirectory, "Resources", "User", "playlist.txt");
         var trackNames = await File.ReadAllLinesAsync(filePath);
 
-        var success = await _searchService.SearchAndSaveTracks(trackNames, options.AddToPlaylistId, options.OpenAIApiKey);
+        var trackIds = await _searchService.SearchTracks(trackNames, options.OpenAIApiKey);
+
+        if (trackIds == null || trackIds.Length == 0)
+        {
+            return 1;
+        }
+
+        var playlistId = await _playlistService.CreatePlaylist($"YM-Playlist-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}");
+
+        if (playlistId == null)
+        {
+            return 1;
+        }
+
+        var success = await _playlistService.AddTracksToPlaylist(playlistId, trackIds);
 
         return success ? 0 : 1;
     }

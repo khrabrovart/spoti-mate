@@ -27,6 +27,19 @@ public class SpotifyPlaylistsApi : SpotifyApiBase, ISpotifyPlaylistsApi
             queryParams: queryParams);
     }
 
+    public async Task<ApiResponse<Playlist>> CreatePlaylist(string userId, string playlistName)
+    {
+        var body = new
+        {
+            name = playlistName
+        };
+
+        return await MakeRequest<Playlist>(
+            HttpMethod.Post,
+            segment: $"users/{userId}/playlists",
+            body: body);
+    }
+
     public async Task<ApiResponse> AddTracksToPlaylist(string playlistId, string[] trackIds)
     {
         FieldValidator.Length(nameof(trackIds), trackIds, min: 0, max: 100);

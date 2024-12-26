@@ -25,10 +25,11 @@ public class Bootstrapper
         services
             .AddTransient<ICommandHandler, CommandHandler>()
 
-            .AddTransient<ISavedTracksService, SavedTracksService>()
-            .AddTransient<IDuplicatesService, DuplicatesService>()
-            .AddTransient<IArtistsService, ArtistsService>()
+            .AddTransient<ISavedTrackService, SavedTrackService>()
+            .AddTransient<IDuplicateService, DuplicateService>()
+            .AddTransient<IArtistService, ArtistService>()
             .AddTransient<ISearchService, SearchService>()
+            .AddTransient<IPlaylistService, PlaylistService>()
 
             .AddSpotify(options.ClientId, options.ClientSecret, options.RefreshToken)
             .AddOpenAI();

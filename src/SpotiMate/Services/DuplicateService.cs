@@ -4,11 +4,11 @@ using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Services;
 
-public class DuplicatesService : IDuplicatesService
+public class DuplicateService : IDuplicateService
 {
     private readonly ISpotifyPlaylistsApi _spotifyPlaylistsApi;
 
-    public DuplicatesService(ISpotifyPlaylistsApi spotifyPlaylistsApi)
+    public DuplicateService(ISpotifyPlaylistsApi spotifyPlaylistsApi)
     {
         _spotifyPlaylistsApi = spotifyPlaylistsApi;
     }
@@ -21,11 +21,8 @@ public class DuplicatesService : IDuplicatesService
         
         if (duplicates.Length == 0)
         {
-            CliPrint.Success("No duplicates found");
             return true;
         }
-        
-        CliPrint.Info($"Found {duplicates.Length} duplicates");
 
         const int chunkSize = 100;
         var chunks = duplicates.Chunk(chunkSize);
@@ -47,7 +44,7 @@ public class DuplicatesService : IDuplicatesService
 
         if (overallSuccess)
         {
-            CliPrint.Success($"Successfully added {duplicates.Length} duplicates to playlist");
+            CliPrint.Success($"Successfully saved {duplicates.Length} duplicates");
         }
 
         return overallSuccess;
@@ -75,21 +72,24 @@ public class DuplicatesService : IDuplicatesService
             for (var j = i + 1; j < preparedTracks.Length; j++)
             {
                 var b = preparedTracks[j];
-                
-                if (a.Name != b.Name || !a.Artists.Intersect(b.Artists).Any())
+
+                if (TracksAreSimilar(a, b))
                 {
-                    continue;
+                    localDuplicates.Add(b);
                 }
-                
-                localDuplicates.Add(b);
             }
 
-            if (localDuplicates.Count <= 0)
+            if (localDuplicates.Count == 0)
             {
                 continue;
             }
             
             localDuplicates.Add(a);
+
+            foreach (var duplicate in localDuplicates)
+            {
+                CliPrint.Info($"- {string.Join(", ", duplicate.Artists)} - {duplicate.Name}; Id {duplicate.Id}; Added on {duplicate.AddedAt}");
+            }
                 
             var orderedDuplicates = localDuplicates
                 .OrderByDescending(d => d.Popularity)
@@ -114,10 +114,17 @@ public class DuplicatesService : IDuplicatesService
     private static string PrepareTrackName(string trackName)
     {
         var lower = trackName.ToLowerInvariant();
-        var nameWords = lower
+        var words = lower
             .Split(' ')
             .TakeWhile(w => char.IsLetterOrDigit(w[0]));
 
-        return string.Join(" ", nameWords);
+        return string.Join(" ", words);
+    }
+
+    private static bool TracksAreSimilar(
+        (string Id, string Name, string[] Artists, int Popularity, DateTime AddedAt) a,
+        (string Id, string Name, string[] Artists, int Popularity, DateTime AddedAt) b)
+    {
+        return a.Name == b.Name && a.Artists.Intersect(b.Artists).Any();
     }
 }
