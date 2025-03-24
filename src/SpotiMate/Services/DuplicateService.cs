@@ -90,6 +90,8 @@ public class DuplicateService : IDuplicateService
             {
                 CliPrint.Info($"- {string.Join(", ", duplicate.Artists)} - {duplicate.Name}; Id {duplicate.Id}; Added on {duplicate.AddedAt}");
             }
+
+            // Random comment to update branch
                 
             var orderedDuplicates = localDuplicates
                 .OrderByDescending(d => d.Popularity)
