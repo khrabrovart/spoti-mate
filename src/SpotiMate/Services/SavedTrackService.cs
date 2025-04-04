@@ -28,6 +28,13 @@ public class SavedTrackService : ISavedTrackService
         while (true)
         {
             var page = await _spotifyMeApi.GetSavedTracks(offset, limit);
+
+            if (page.IsError)
+            {
+                CliPrint.Error($"Failed to load saved tracks: {page.Error}");
+                return null;
+            }
+
             savedTracks.AddRange(page.Data.Items);
 
             if (savedTracks.Count >= page.Data.Total)

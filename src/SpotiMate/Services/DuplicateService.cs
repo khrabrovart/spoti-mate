@@ -6,6 +6,23 @@ namespace SpotiMate.Services;
 
 public class DuplicateService : IDuplicateService
 {
+    private class PreparedTrack
+    {
+        public string Id { get; set; }
+
+        public string OriginalName { get; set; }
+
+        public string SanitizedName { get; set; }
+
+        public string[] ArtistNames { get; set; }
+
+        public string[] ArtistIds { get; set; }
+
+        public int Popularity { get; set; }
+
+        public DateTime AddedAt { get; set; }
+    }
+
     private readonly ISpotifyPlaylistsApi _spotifyPlaylistsApi;
 
     public DuplicateService(ISpotifyPlaylistsApi spotifyPlaylistsApi)
@@ -67,7 +84,7 @@ public class DuplicateService : IDuplicateService
                 continue;
             }
             
-            var localDuplicates = new List<(string Id, string Name, string[] Artists, int Popularity, DateTime AddedAt)>();
+            var localDuplicates = new List<PreparedTrack>();
             
             for (var j = i + 1; j < preparedTracks.Length; j++)
             {
@@ -88,7 +105,7 @@ public class DuplicateService : IDuplicateService
 
             foreach (var duplicate in localDuplicates)
             {
-                CliPrint.Info($"- {string.Join(", ", duplicate.Artists)} - {duplicate.Name}; Id {duplicate.Id}; Added on {duplicate.AddedAt}");
+                CliPrint.Info($"- {string.Join(", ", duplicate.ArtistNames)} - {duplicate.OriginalName}; Id {duplicate.Id}; Added on {duplicate.AddedAt}");
             }
                 
             var orderedDuplicates = localDuplicates
@@ -101,14 +118,18 @@ public class DuplicateService : IDuplicateService
         return duplicates.Distinct().ToArray();
     }
     
-    private static (string Id, string Name, string[] Artists, int Popularity, DateTime AddedAt) PrepareTrack(SavedTrackObject track)
+    private static PreparedTrack PrepareTrack(SavedTrackObject track)
     {
-        return (
-            track.Track.Id,
-            PrepareTrackName(track.Track.Name),
-            track.Track.Artists.Select(a => a.Id).ToArray(),
-            track.Track.Popularity,
-            track.AddedAt);
+        return new PreparedTrack
+        {
+            Id = track.Track.Id,
+            OriginalName = track.Track.Name,
+            SanitizedName = PrepareTrackName(track.Track.Name),
+            ArtistNames = track.Track.Artists.Select(a => a.Name).ToArray(),
+            ArtistIds = track.Track.Artists.Select(a => a.Id).ToArray(),
+            Popularity = track.Track.Popularity,
+            AddedAt = track.AddedAt
+        };
     }
     
     private static string PrepareTrackName(string trackName)
@@ -121,10 +142,8 @@ public class DuplicateService : IDuplicateService
         return string.Join(" ", words);
     }
 
-    private static bool TracksAreSimilar(
-        (string Id, string Name, string[] Artists, int Popularity, DateTime AddedAt) a,
-        (string Id, string Name, string[] Artists, int Popularity, DateTime AddedAt) b)
+    private static bool TracksAreSimilar(PreparedTrack a, PreparedTrack b)
     {
-        return a.Name == b.Name && a.Artists.Intersect(b.Artists).Any();
+        return a.SanitizedName == b.SanitizedName && a.ArtistIds.Intersect(b.ArtistIds).Any();
     }
 }

@@ -49,9 +49,7 @@ public class CommandHandler : ICommandHandler
             options.DuplicatesPlaylistId,
             TimeSpan.FromDays(options.Days));
 
-        var artistsSynchronized = await _artistService.FollowArtists(
-            savedTracks,
-            TimeSpan.FromDays(options.Days));
+        var artistsSynchronized = await _artistService.SyncArtists(savedTracks);
 
         return duplicatesProcessed && artistsSynchronized ? 0 : 1;
     }
