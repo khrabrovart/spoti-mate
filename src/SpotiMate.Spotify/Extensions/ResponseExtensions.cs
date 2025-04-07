@@ -27,7 +27,7 @@ static internal class ResponseExtensions
     {
         apiResponse.StatusCode = (HttpStatusCode)response.StatusCode;
         apiResponse.IsError = response.StatusCode is < 200 or > 299;
-        apiResponse.Error = apiResponse.IsError ? await response.GetStringAsync() : default;
+        apiResponse.Error = apiResponse.IsError ? await response.GetStringAsync() : null;
         apiResponse.RetryAfter = ResolveRetryAfter(response);
     }
 
@@ -35,9 +35,9 @@ static internal class ResponseExtensions
     {
         if (response.Headers.TryGetFirst("Retry-After", out var headerValue))
         {
-            return int.TryParse(headerValue, out var parsedValue) ? parsedValue : default;
+            return int.TryParse(headerValue, out var parsedValue) ? parsedValue : 0;
         }
 
-        return default;
+        return null;
     }
 }

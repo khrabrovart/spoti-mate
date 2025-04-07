@@ -8,6 +8,8 @@ namespace SpotiMate.Spotify.Apis;
 
 public abstract class SpotifyApiBase
 {
+    private const int RetryCount = 3;
+
     private readonly ISpotifyAuthProvider _authProvider;
     private readonly string _apiSegment;
 
@@ -23,8 +25,25 @@ public abstract class SpotifyApiBase
         object body = null,
         Dictionary<string, string> queryParams = null)
     {
-        var response = await MakeInternalRequest(verb, segment, body, queryParams);
-        return await response.ToApiResponse();
+        ApiResponse response = null;
+
+        for (var i = 0; i < RetryCount; i++)
+        {
+            var rawResponse = await MakeInternalRequest(verb, segment, body, queryParams);
+            response = await rawResponse.ToApiResponse();
+
+            if (!response.IsError)
+            {
+                return response;
+            }
+
+            if (response.RetryAfter.HasValue)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(response.RetryAfter.Value));
+            }
+        }
+
+        return response;
     }
 
     protected async Task<ApiResponse<TResponse>> MakeRequest<TResponse>(
@@ -33,8 +52,25 @@ public abstract class SpotifyApiBase
         object body = null,
         Dictionary<string, string> queryParams = null)
     {
-        var response = await MakeInternalRequest(verb, segment, body, queryParams);
-        return await response.ToApiResponse<TResponse>();
+        ApiResponse<TResponse> response = null;
+
+        for (var i = 0; i < RetryCount; i++)
+        {
+            var rawResponse = await MakeInternalRequest(verb, segment, body, queryParams);
+            response = await rawResponse.ToApiResponse<TResponse>();
+
+            if (!response.IsError)
+            {
+                return response;
+            }
+
+            if (response.RetryAfter.HasValue)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(response.RetryAfter.Value));
+            }
+        }
+
+        return response;
     }
 
     private async Task<IFlurlResponse> MakeInternalRequest(
