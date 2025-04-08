@@ -4,6 +4,14 @@ using SpotiMate.Spotify.Providers;
 
 namespace SpotiMate.Spotify.Apis;
 
+public interface ISpotifyPlaylistsApi
+{
+    Task<ApiResponse<Page<PlaylistTrackObject>>> GetPlaylistTracks(string playlistId, int offset, int limit);
+    Task<ApiResponse> AddTracksToPlaylist(string playlistId, string[] trackIds);
+    Task<ApiResponse<Playlist>> CreatePlaylist(string userId, string playlistName);
+    Task<ApiResponse> RemoveTracksFromPlaylist(string playlistId, string[] trackIds);
+}
+
 public class SpotifyPlaylistsApi : SpotifyApiBase, ISpotifyPlaylistsApi
 {
     public SpotifyPlaylistsApi(ISpotifyAuthProvider authProvider) : base(authProvider, "playlists")
@@ -55,13 +63,16 @@ public class SpotifyPlaylistsApi : SpotifyApiBase, ISpotifyPlaylistsApi
             body: body);
     }
 
-    public async Task<ApiResponse> RemovePlaylistTracks(string playlistId, string[] trackIds)
+    public async Task<ApiResponse> RemoveTracksFromPlaylist(string playlistId, string[] trackIds)
     {
         FieldValidator.Length(nameof(trackIds), trackIds, min: 0, max: 100);
 
         var body = new
         {
-            uris = trackIds.Select(id => id.ToSpotifyTrackUri())
+            tracks = trackIds.Select(id => new
+            {
+                uri = id.ToSpotifyTrackUri()
+            })
         };
 
         return await MakeRequest(

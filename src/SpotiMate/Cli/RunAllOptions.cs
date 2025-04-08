@@ -10,4 +10,7 @@ public class RunAllOptions : CliOptions
     
     [Option("duplicates-playlist-id", Required = true, HelpText = "ID of the playlist to add duplicates to.")]
     public string DuplicatesPlaylistId { get; set; }
+
+    [Option("artist-followers-threshold", Required = true, HelpText = "Minimum number of followers for an artist to be followed.")]
+    public int ArtistFollowersThreshold { get; set; }
 }

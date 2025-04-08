@@ -1,155 +1,104 @@
-using System.Diagnostics;
 using SpotiMate.Cli;
-using SpotiMate.Spotify.Apis;
 using SpotiMate.Spotify.Models;
+using SpotiMate.Spotify.Services;
 
 namespace SpotiMate.Services;
 
+public interface IArtistService
+{
+    Task<ArtistObject[]> GetFollowedArtists();
+    Task SyncFollowedArtists(
+        SavedTrackObject[] savedTracks,
+        ArtistObject[] followedArtists,
+        int artistFollowersThreshold);
+}
+
 public class ArtistService : IArtistService
 {
-    private readonly ISpotifyMeApi _spotifyMeApi;
+    private readonly ISpotifyMeService _spotifyMeService;
+    private readonly ISpotifyArtistsService _spotifyArtistsService;
 
-    public ArtistService(ISpotifyMeApi spotifyMeApi)
+    public ArtistService(ISpotifyMeService spotifyMeService, ISpotifyArtistsService spotifyArtistsService)
     {
-        _spotifyMeApi = spotifyMeApi;
+        _spotifyMeService = spotifyMeService;
+        _spotifyArtistsService = spotifyArtistsService;
     }
 
-    public async Task<bool> SyncArtists(IEnumerable<SavedTrackObject> savedTracks)
+    public async Task<ArtistObject[]> GetFollowedArtists()
     {
-        CliPrint.Info("Synchronizing artists");
+        CliPrint.Info("Getting followed artists");
+        return await _spotifyMeService.GetFollowedArtists();
+    }
 
-        var uniqueArtistIds = savedTracks
+    public async Task SyncFollowedArtists(
+        SavedTrackObject[] savedTracks,
+        ArtistObject[] followedArtists,
+        int artistFollowersThreshold)
+    {
+        CliPrint.Info("Synchronizing followed artists");
+
+        var savedTracksArtistIds = savedTracks
             .SelectMany(t => t.Track.Artists.Select(a => a.Id))
             .Distinct()
             .ToArray();
 
-        var followedArtists = await GetFollowedArtists();
+        await FollowArtists(
+            savedTracksArtistIds,
+            followedArtists,
+            artistFollowersThreshold);
 
-        if (followedArtists == null)
-        {
-            return false;
-        }
+        await UnfollowArtists(
+            savedTracksArtistIds,
+            followedArtists,
+            artistFollowersThreshold);
+    }
 
-        var followedArtistsIds = followedArtists
+    private async Task FollowArtists(
+        string[] savedTracksArtistIds,
+        IEnumerable<ArtistObject> followedArtists,
+        int artistFollowersThreshold)
+    {
+        var followedArtistIds = followedArtists
             .Select(a => a.Id)
             .ToArray();
 
-        var artistsToFollow = uniqueArtistIds.Except(followedArtistsIds).ToArray();
-        var artistsToUnfollow = followedArtistsIds.Except(uniqueArtistIds).ToArray();
+        var artistIdsToFollow = savedTracksArtistIds.Except(followedArtistIds).ToArray();
 
-        if (artistsToFollow.Length == 0 && artistsToUnfollow.Length == 0)
+        if (artistIdsToFollow.Length == 0)
         {
-            CliPrint.Success("No artists to synchronize");
-            return true;
+            return;
         }
 
-        var overallSuccess = true;
+        var artistsToFollowInfo = await _spotifyArtistsService.GetArtists(artistIdsToFollow);
 
-        if (artistsToFollow.Length > 0)
+        var filteredArtistIdsToFollow = artistsToFollowInfo
+            .Where(a => a.Followers.Total >= artistFollowersThreshold)
+            .Select(a => a.Id)
+            .ToArray();
+
+        if (filteredArtistIdsToFollow.Length == 0)
         {
-            if (!await FollowArtists(artistsToFollow))
-            {
-                overallSuccess = false;
-            }
+            return;
         }
 
-        if (artistsToUnfollow.Length > 0)
-        {
-            if (!await UnfollowArtists(artistsToUnfollow))
-            {
-                overallSuccess = false;
-            }
-        }
-
-        if (overallSuccess)
-        {
-            CliPrint.Success("Successfully synchronized artists");
-        }
-
-        return overallSuccess;
+        await _spotifyMeService.FollowArtists(filteredArtistIdsToFollow);
     }
 
-    private async Task<bool> FollowArtists(string[] artistIds)
+    private async Task UnfollowArtists(
+        string[] savedTracksArtistIds,
+        IEnumerable<ArtistObject> followedArtists,
+        int artistFollowersThreshold)
     {
-        CliPrint.Info($"Following {artistIds.Length} artists");
+        var artistsToUnfollow = followedArtists
+            .Where(a => !savedTracksArtistIds.Contains(a.Id) || a.Followers.Total < artistFollowersThreshold)
+            .Select(a => a.Id)
+            .ToArray();
 
-        const int chunkSize = 50;
-        var success = true;
-        var chunks = artistIds.Chunk(chunkSize);
-
-        foreach (var chunk in chunks)
+        if (artistsToUnfollow.Length == 0)
         {
-            var result = await _spotifyMeApi.FollowArtists(chunk);
-
-            if (!result.IsError)
-            {
-                continue;
-            }
-
-            CliPrint.Error($"Failed to follow artists: {result.Error}");
-            success = false;
+            return;
         }
 
-        return success;
-    }
-
-    private async Task<bool> UnfollowArtists(string[] artistIds)
-    {
-        CliPrint.Info($"Unfollowing {artistIds.Length} artists");
-
-        const int chunkSize = 50;
-        var success = true;
-        var chunks = artistIds.Chunk(chunkSize);
-
-        foreach (var chunk in chunks)
-        {
-            var result = await _spotifyMeApi.UnfollowArtists(chunk);
-
-            if (!result.IsError)
-            {
-                continue;
-            }
-
-            CliPrint.Error($"Failed to unfollow artists: {result.Error}");
-            success = false;
-        }
-
-        return success;
-    }
-
-    private async Task<ArtistObject[]> GetFollowedArtists()
-    {
-        CliPrint.Info("Loading followed artists");
-
-        var artists = new List<ArtistObject>();
-
-        string lastArtistId = null;
-        const int limit = 50;
-
-        var sw = Stopwatch.StartNew();
-
-        while (true)
-        {
-            var response = await _spotifyMeApi.GetFollowedArtists(lastArtistId, limit);
-
-            if (response.IsError)
-            {
-                CliPrint.Error($"Failed to load followed artists: {response.Error}");
-                return null;
-            }
-
-            artists.AddRange(response.Data.Artists.Items);
-
-            if (artists.Count >= response.Data.Artists.Total)
-            {
-                break;
-            }
-
-            lastArtistId = response.Data.Artists.Items.LastOrDefault()?.Id;
-        }
-
-        CliPrint.Success($"Loaded {artists.Count} followed artists in {sw.Elapsed.TotalSeconds:F2}s");
-
-        return artists.ToArray();
+        await _spotifyMeService.UnfollowArtists(artistsToUnfollow);
     }
 }

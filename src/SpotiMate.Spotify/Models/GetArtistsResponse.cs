@@ -2,8 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace SpotiMate.Spotify.Models;
 
-public class FollowedArtists
+public class GetArtistsResponse
 {
     [JsonPropertyName("artists")]
-    public Page<ArtistObject> Artists { get; set; }
+    public ArtistObject[] Artists { get; set; }
 }

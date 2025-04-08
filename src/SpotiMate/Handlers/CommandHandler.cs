@@ -3,6 +3,11 @@ using SpotiMate.Services;
 
 namespace SpotiMate.Handlers;
 
+public interface ICommandHandler
+{
+    Task<int> Handle(CliOptions options);
+}
+
 public class CommandHandler : ICommandHandler
 {
     private readonly ISavedTrackService _savedTrackService;
@@ -27,34 +32,51 @@ public class CommandHandler : ICommandHandler
 
     public async Task<int> Handle(CliOptions options)
     {
-        return options switch
+        switch (options)
         {
-            RunAllOptions runAllOptions => await RunAll(runAllOptions),
-            SearchTracksOptions searchTracksOptions => await SearchTracks(searchTracksOptions),
-            _ => throw new InvalidOperationException()
-        };
+            case RunAllOptions runAllOptions:
+                await RunAll(runAllOptions);
+                break;
+
+            case SearchTracksOptions searchTracksOptions:
+                await SearchTracks(searchTracksOptions);
+                break;
+
+            default:
+                throw new ArgumentException("Invalid options");
+        }
+
+        return 0;
     }
 
-    private async Task<int> RunAll(RunAllOptions options)
+    private async Task RunAll(RunAllOptions options)
     {
         var savedTracks = await _savedTrackService.GetSavedTracks();
 
         if (savedTracks == null || savedTracks.Length == 0)
         {
-            return 1;
+            throw new Exception("No saved tracks found");
         }
 
-        var duplicatesProcessed = await _duplicateService.FindDuplicates(
+        await _duplicateService.FindDuplicates(
             savedTracks,
             options.DuplicatesPlaylistId,
             TimeSpan.FromDays(options.Days));
 
-        var artistsSynchronized = await _artistService.SyncArtists(savedTracks);
+        var followedArtists = await _artistService.GetFollowedArtists();
 
-        return duplicatesProcessed && artistsSynchronized ? 0 : 1;
+        if (followedArtists == null || followedArtists.Length == 0)
+        {
+            throw new Exception("No followed artists found");
+        }
+
+        await _artistService.SyncFollowedArtists(
+            savedTracks,
+            followedArtists,
+            options.ArtistFollowersThreshold);
     }
 
-    private async Task<int> SearchTracks(SearchTracksOptions options)
+    private async Task SearchTracks(SearchTracksOptions options)
     {
         var filePath = Path.Combine(Environment.CurrentDirectory, "Resources", "User", "playlist.txt");
         var trackNames = await File.ReadAllLinesAsync(filePath);
@@ -63,18 +85,16 @@ public class CommandHandler : ICommandHandler
 
         if (trackIds == null || trackIds.Length == 0)
         {
-            return 1;
+            throw new Exception("No tracks found");
         }
 
         var playlistId = await _playlistService.CreatePlaylist($"YM-Playlist-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}");
 
         if (playlistId == null)
         {
-            return 1;
+            throw new Exception("Playlist could not be created");
         }
 
-        var success = await _playlistService.AddTracksToPlaylist(playlistId, trackIds);
-
-        return success ? 0 : 1;
+        await _playlistService.AddTracksToPlaylist(playlistId, trackIds);
     }
 }

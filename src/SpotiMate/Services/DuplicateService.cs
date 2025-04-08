@@ -1,8 +1,13 @@
 using SpotiMate.Cli;
-using SpotiMate.Spotify.Apis;
 using SpotiMate.Spotify.Models;
+using SpotiMate.Spotify.Services;
 
 namespace SpotiMate.Services;
+
+public interface IDuplicateService
+{
+    Task FindDuplicates(SavedTrackObject[] savedTracks, string duplicatesPlaylistId, TimeSpan recency);
+}
 
 public class DuplicateService : IDuplicateService
 {
@@ -23,48 +28,27 @@ public class DuplicateService : IDuplicateService
         public DateTime AddedAt { get; set; }
     }
 
-    private readonly ISpotifyPlaylistsApi _spotifyPlaylistsApi;
+    private readonly ISpotifyPlaylistsService _spotifyPlaylistsService;
 
-    public DuplicateService(ISpotifyPlaylistsApi spotifyPlaylistsApi)
+    public DuplicateService(ISpotifyPlaylistsService spotifyPlaylistsService)
     {
-        _spotifyPlaylistsApi = spotifyPlaylistsApi;
+        _spotifyPlaylistsService = spotifyPlaylistsService;
     }
 
-    public async Task<bool> FindDuplicates(SavedTrackObject[] savedTracks, string duplicatesPlaylistId, TimeSpan recency)
+    public async Task FindDuplicates(SavedTrackObject[] savedTracks, string duplicatesPlaylistId, TimeSpan recency)
     {
-        CliPrint.Info("Checking duplicates");
+        CliPrint.Info("Searching for duplicates");
         
         var duplicates = GetDuplicates(savedTracks, recency);
         
         if (duplicates.Length == 0)
         {
-            return true;
+            return;
         }
 
-        const int chunkSize = 100;
-        var chunks = duplicates.Chunk(chunkSize);
+        await _spotifyPlaylistsService.AddTracksToPlaylist(duplicatesPlaylistId, duplicates);
 
-        var overallSuccess = true;
-
-        foreach (var chunk in chunks)
-        {
-            var result = await _spotifyPlaylistsApi.AddTracksToPlaylist(duplicatesPlaylistId, chunk);
-
-            if (!result.IsError)
-            {
-                continue;
-            }
-
-            CliPrint.Error($"Failed to add duplicates to playlist: {result.Error}");
-            overallSuccess = false;
-        }
-
-        if (overallSuccess)
-        {
-            CliPrint.Success($"Successfully saved {duplicates.Length} duplicates");
-        }
-
-        return overallSuccess;
+        CliPrint.Success($"Successfully saved {duplicates.Length} duplicates");
     }
     
     private static string[] GetDuplicates(IEnumerable<SavedTrackObject> savedTracks, TimeSpan recency)
