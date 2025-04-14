@@ -74,6 +74,8 @@ public class CommandHandler : ICommandHandler
             savedTracks,
             followedArtists,
             options.ArtistFollowersThreshold);
+
+        CliPrint.Info("All operations completed successfully");
     }
 
     private async Task SearchTracks(SearchTracksOptions options)

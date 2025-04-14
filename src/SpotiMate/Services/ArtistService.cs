@@ -82,6 +82,8 @@ public class ArtistService : IArtistService
         }
 
         await _spotifyMeService.FollowArtists(filteredArtistIdsToFollow);
+
+        CliPrint.Success($"Successfully followed {filteredArtistIdsToFollow.Length} artists");
     }
 
     private async Task UnfollowArtists(
@@ -100,5 +102,7 @@ public class ArtistService : IArtistService
         }
 
         await _spotifyMeService.UnfollowArtists(artistsToUnfollow);
+
+        CliPrint.Success($"Successfully unfollowed {artistsToUnfollow.Length} artists");
     }
 }
