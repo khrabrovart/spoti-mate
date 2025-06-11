@@ -6,7 +6,7 @@ public class OpenAIChatService : IOpenAIChatService
 {
     public async Task<string> Complete(string apiKey, string systemMessage, string userMessage)
     {
-        var chat = new ChatClient("gpt-3.5-turbo", apiKey);
+        var chat = new ChatClient("o4-mini", apiKey);
 
         var systemChatMessage = ChatMessage.CreateSystemMessage(systemMessage);
         var userChatMessage = ChatMessage.CreateUserMessage(userMessage);
