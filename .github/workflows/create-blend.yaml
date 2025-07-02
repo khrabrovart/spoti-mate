@@ -11,7 +11,7 @@ env:
   TERM: "xterm"
 
 jobs:
-  sync:
+  create-blend:
     runs-on: ubuntu-latest
 
     steps:
