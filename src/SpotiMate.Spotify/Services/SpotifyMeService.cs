@@ -3,7 +3,7 @@ using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Spotify.Services;
 
-public interface ISpotifyMeService
+public interface ISpotifyMeService : ISpotifyService<ISpotifyMeApi>
 {
     Task<UserProfile> GetCurrentUserProfile();
     Task<SavedTrackObject[]> GetSavedTracks();
@@ -14,16 +14,16 @@ public interface ISpotifyMeService
 
 public class SpotifyMeService : ISpotifyMeService
 {
-    private readonly ISpotifyMeApi _spotifyMeApi;
-
     public SpotifyMeService(ISpotifyMeApi spotifyMeApi)
     {
-        _spotifyMeApi = spotifyMeApi;
+        Api = spotifyMeApi;
     }
+
+    public ISpotifyMeApi Api { get; }
 
     public async Task<UserProfile> GetCurrentUserProfile()
     {
-        var response = await _spotifyMeApi.GetCurrentUserProfile();
+        var response = await Api.GetCurrentUserProfile();
 
         if (response.IsError)
         {
@@ -42,7 +42,7 @@ public class SpotifyMeService : ISpotifyMeService
 
         while (true)
         {
-            var page = await _spotifyMeApi.GetSavedTracks(offset, limit);
+            var page = await Api.GetSavedTracks(offset, limit);
 
             if (page.IsError)
             {
@@ -69,7 +69,7 @@ public class SpotifyMeService : ISpotifyMeService
 
         while (true)
         {
-            var response = await _spotifyMeApi.GetFollowedArtists(lastArtistId, limit);
+            var response = await Api.GetFollowedArtists(lastArtistId, limit);
 
             if (response.IsError)
             {
@@ -94,7 +94,7 @@ public class SpotifyMeService : ISpotifyMeService
 
         foreach (var chunk in chunks)
         {
-            var result = await _spotifyMeApi.FollowArtists(chunk);
+            var result = await Api.FollowArtists(chunk);
 
             if (result.IsError)
             {
@@ -110,7 +110,7 @@ public class SpotifyMeService : ISpotifyMeService
 
         foreach (var chunk in chunks)
         {
-            var result = await _spotifyMeApi.UnfollowArtists(chunk);
+            var result = await Api.UnfollowArtists(chunk);
 
             if (result.IsError)
             {

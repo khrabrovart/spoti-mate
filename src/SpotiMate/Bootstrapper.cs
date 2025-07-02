@@ -4,7 +4,7 @@ using SpotiMate.Cli;
 using SpotiMate.Handlers;
 using SpotiMate.OpenAI.Extensions;
 using SpotiMate.Services;
-using SpotiMate.Spotify.Extensions;
+using SpotiMate.Spotify;
 
 namespace SpotiMate;
 
@@ -25,13 +25,12 @@ public class Bootstrapper
         services
             .AddTransient<ICommandHandler, CommandHandler>()
 
-            .AddTransient<ISavedTrackService, SavedTrackService>()
+            .AddSingleton<ISpotifyClient>(_ => new SpotifyClient(options.ClientId, options.ClientSecret, options.RefreshToken))
+
             .AddTransient<IDuplicateService, DuplicateService>()
             .AddTransient<IArtistService, ArtistService>()
-            .AddTransient<ISearchService, SearchService>()
-            .AddTransient<IPlaylistService, PlaylistService>()
+            .AddTransient<IBlendService, BlendService>()
 
-            .AddSpotify(options.ClientId, options.ClientSecret, options.RefreshToken)
             .AddOpenAI();
     }
 }

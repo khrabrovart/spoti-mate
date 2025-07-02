@@ -1,40 +1,38 @@
 using SpotiMate.Cli;
+using SpotiMate.Spotify;
 using SpotiMate.Spotify.Models;
-using SpotiMate.Spotify.Services;
 
 namespace SpotiMate.Services;
 
 public interface IArtistService
 {
-    Task<ArtistObject[]> GetFollowedArtists();
     Task SyncFollowedArtists(
         SavedTrackObject[] savedTracks,
-        ArtistObject[] followedArtists,
         int artistFollowersThreshold);
 }
 
 public class ArtistService : IArtistService
 {
-    private readonly ISpotifyMeService _spotifyMeService;
-    private readonly ISpotifyArtistsService _spotifyArtistsService;
+    private readonly ISpotifyClient _spotifyClient;
 
-    public ArtistService(ISpotifyMeService spotifyMeService, ISpotifyArtistsService spotifyArtistsService)
+    public ArtistService(ISpotifyClient spotifyClient)
     {
-        _spotifyMeService = spotifyMeService;
-        _spotifyArtistsService = spotifyArtistsService;
-    }
-
-    public async Task<ArtistObject[]> GetFollowedArtists()
-    {
-        CliPrint.Info("Getting followed artists");
-        return await _spotifyMeService.GetFollowedArtists();
+        _spotifyClient = spotifyClient;
     }
 
     public async Task SyncFollowedArtists(
         SavedTrackObject[] savedTracks,
-        ArtistObject[] followedArtists,
         int artistFollowersThreshold)
     {
+        CliPrint.Info("Getting followed artists");
+
+        var followedArtists = await _spotifyClient.Me.GetFollowedArtists();
+
+        if (followedArtists == null || followedArtists.Length == 0)
+        {
+            throw new Exception("No followed artists found");
+        }
+
         CliPrint.Info("Synchronizing followed artists");
 
         var savedTracksArtistIds = savedTracks
@@ -69,7 +67,7 @@ public class ArtistService : IArtistService
             return;
         }
 
-        var artistsToFollowInfo = await _spotifyArtistsService.GetArtists(artistIdsToFollow);
+        var artistsToFollowInfo = await _spotifyClient.Artists.GetArtists(artistIdsToFollow);
 
         var filteredArtistIdsToFollow = artistsToFollowInfo
             .Where(a => a.Followers.Total >= artistFollowersThreshold)
@@ -81,7 +79,7 @@ public class ArtistService : IArtistService
             return;
         }
 
-        await _spotifyMeService.FollowArtists(filteredArtistIdsToFollow);
+        await _spotifyClient.Me.FollowArtists(filteredArtistIdsToFollow);
 
         CliPrint.Success($"Successfully followed {filteredArtistIdsToFollow.Length} artists");
     }
@@ -101,7 +99,7 @@ public class ArtistService : IArtistService
             return;
         }
 
-        await _spotifyMeService.UnfollowArtists(artistsToUnfollow);
+        await _spotifyClient.Me.UnfollowArtists(artistsToUnfollow);
 
         CliPrint.Success($"Successfully unfollowed {artistsToUnfollow.Length} artists");
     }

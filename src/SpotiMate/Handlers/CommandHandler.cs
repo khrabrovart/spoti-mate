@@ -1,5 +1,6 @@
 using SpotiMate.Cli;
 using SpotiMate.Services;
+using SpotiMate.Spotify;
 
 namespace SpotiMate.Handlers;
 
@@ -10,24 +11,22 @@ public interface ICommandHandler
 
 public class CommandHandler : ICommandHandler
 {
-    private readonly ISavedTrackService _savedTrackService;
+    private readonly ISpotifyClient _mySpotifyClient;
+
     private readonly IDuplicateService _duplicateService;
     private readonly IArtistService _artistService;
-    private readonly ISearchService _searchService;
-    private readonly IPlaylistService _playlistService;
+    private readonly IBlendService _blendService;
 
     public CommandHandler(
-        ISavedTrackService savedTrackService,
+        ISpotifyClient mySpotifyClient,
         IDuplicateService duplicateService,
         IArtistService artistService,
-        ISearchService searchService,
-        IPlaylistService playlistService)
+        IBlendService blendService)
     {
-        _savedTrackService = savedTrackService;
+        _mySpotifyClient = mySpotifyClient;
         _duplicateService = duplicateService;
         _artistService = artistService;
-        _searchService = searchService;
-        _playlistService = playlistService;
+        _blendService = blendService;
     }
 
     public async Task<int> Handle(CliOptions options)
@@ -38,8 +37,8 @@ public class CommandHandler : ICommandHandler
                 await RunAll(runAllOptions);
                 break;
 
-            case SearchTracksOptions searchTracksOptions:
-                await SearchTracks(searchTracksOptions);
+            case CreateBlendOptions createBlendOptions:
+                await CreateBlend(createBlendOptions);
                 break;
 
             default:
@@ -51,9 +50,11 @@ public class CommandHandler : ICommandHandler
 
     private async Task RunAll(RunAllOptions options)
     {
-        var savedTracks = await _savedTrackService.GetSavedTracks();
+        CliPrint.Info("Getting saved tracks");
 
-        if (savedTracks == null || savedTracks.Length == 0)
+        var savedTracks = await _mySpotifyClient.Me.GetSavedTracks();
+
+        if (savedTracks.Length == 0)
         {
             throw new Exception("No saved tracks found");
         }
@@ -63,40 +64,21 @@ public class CommandHandler : ICommandHandler
             options.DuplicatesPlaylistId,
             TimeSpan.FromDays(options.Days));
 
-        var followedArtists = await _artistService.GetFollowedArtists();
-
-        if (followedArtists == null || followedArtists.Length == 0)
-        {
-            throw new Exception("No followed artists found");
-        }
-
         await _artistService.SyncFollowedArtists(
             savedTracks,
-            followedArtists,
             options.ArtistFollowersThreshold);
 
         CliPrint.Info("All operations completed successfully");
     }
 
-    private async Task SearchTracks(SearchTracksOptions options)
+    private async Task CreateBlend(CreateBlendOptions options)
     {
-        var filePath = Path.Combine(Environment.CurrentDirectory, "Resources", "User", "playlist.txt");
-        var trackNames = await File.ReadAllLinesAsync(filePath);
+        var blendSpotifyClient = new SpotifyClient(options.ClientId, options.ClientSecret, options.BlendRefreshToken);
 
-        var trackIds = await _searchService.SearchTracks(trackNames, options.OpenAIApiKey);
-
-        if (trackIds == null || trackIds.Length == 0)
-        {
-            throw new Exception("No tracks found");
-        }
-
-        var playlistId = await _playlistService.CreatePlaylist($"YM-Playlist-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}");
-
-        if (playlistId == null)
-        {
-            throw new Exception("Playlist could not be created");
-        }
-
-        await _playlistService.AddTracksToPlaylist(playlistId, trackIds);
+        await _blendService.CreateBlend(
+            blendSpotifyClient,
+            options.BlendAdditionalPlaylists.ToArray(),
+            options.BlendSize,
+            options.BlendPlaylistId);
     }
 }

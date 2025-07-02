@@ -3,7 +3,7 @@ using SpotiMate.Spotify.Models;
 
 namespace SpotiMate.Spotify.Services;
 
-public interface ISpotifyArtistsService
+public interface ISpotifyArtistsService : ISpotifyService<ISpotifyArtistsApi>
 {
     Task<ArtistObject[]> GetArtists(string[] artistIds);
     Task<TrackObject[]> GetArtistTopTracks(string artistId);
@@ -11,12 +11,12 @@ public interface ISpotifyArtistsService
 
 public class SpotifyArtistsService : ISpotifyArtistsService
 {
-    private readonly ISpotifyArtistsApi _spotifyArtistsApi;
-
     public SpotifyArtistsService(ISpotifyArtistsApi spotifyArtistsApi)
     {
-        _spotifyArtistsApi = spotifyArtistsApi;
+        Api = spotifyArtistsApi;
     }
+
+    public ISpotifyArtistsApi Api { get; }
 
     public async Task<ArtistObject[]> GetArtists(string [] artistIds)
     {
@@ -26,7 +26,7 @@ public class SpotifyArtistsService : ISpotifyArtistsService
 
         foreach (var chunk in chunks)
         {
-            var response = await _spotifyArtistsApi.GetArtists(chunk);
+            var response = await Api.GetArtists(chunk);
 
             if (response.IsError)
             {
@@ -41,7 +41,7 @@ public class SpotifyArtistsService : ISpotifyArtistsService
 
     public async Task<TrackObject[]> GetArtistTopTracks(string artistId)
     {
-        var response = await _spotifyArtistsApi.GetArtistTopTracks(artistId);
+        var response = await Api.GetArtistTopTracks(artistId);
 
         if (response.IsError)
         {

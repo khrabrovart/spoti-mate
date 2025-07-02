@@ -12,7 +12,7 @@ public class Program
         try
         {
             return await Parser.Default
-                .ParseArguments<RunAllOptions, SearchTracksOptions>(args)
+                .ParseArguments<RunAllOptions, CreateBlendOptions>(args)
                 .MapResult(
                     (CliOptions options) =>
                     {

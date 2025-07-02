@@ -3,6 +3,12 @@ using SpotiMate.Spotify.Providers;
 
 namespace SpotiMate.Spotify.Apis;
 
+public interface ISpotifySearchApi
+{
+    Task<ApiResponse<SearchResults>> SearchTracks(string query, int offset, int limit);
+}
+
+
 public class SpotifySearchApi : SpotifyApiBase, ISpotifySearchApi
 {
     public SpotifySearchApi(ISpotifyAuthProvider authProvider) : base(authProvider, "search")

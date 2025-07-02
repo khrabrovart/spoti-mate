@@ -1,6 +1,6 @@
 using SpotiMate.Cli;
+using SpotiMate.Spotify;
 using SpotiMate.Spotify.Models;
-using SpotiMate.Spotify.Services;
 
 namespace SpotiMate.Services;
 
@@ -28,11 +28,11 @@ public class DuplicateService : IDuplicateService
         public DateTime AddedAt { get; set; }
     }
 
-    private readonly ISpotifyPlaylistsService _spotifyPlaylistsService;
+    private readonly ISpotifyClient _spotifyClient;
 
-    public DuplicateService(ISpotifyPlaylistsService spotifyPlaylistsService)
+    public DuplicateService(ISpotifyClient spotifyClient)
     {
-        _spotifyPlaylistsService = spotifyPlaylistsService;
+        _spotifyClient = spotifyClient;
     }
 
     public async Task FindDuplicates(SavedTrackObject[] savedTracks, string duplicatesPlaylistId, TimeSpan recency)
@@ -46,7 +46,7 @@ public class DuplicateService : IDuplicateService
             return;
         }
 
-        await _spotifyPlaylistsService.AddTracksToPlaylist(duplicatesPlaylistId, duplicates);
+        await _spotifyClient.Playlists.AddTracksToPlaylist(duplicatesPlaylistId, duplicates);
 
         CliPrint.Success($"Successfully saved {duplicates.Length} duplicates");
     }

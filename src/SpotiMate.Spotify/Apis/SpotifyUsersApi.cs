@@ -3,6 +3,11 @@ using SpotiMate.Spotify.Providers;
 
 namespace SpotiMate.Spotify.Apis;
 
+public interface ISpotifyUsersApi
+{
+    Task<ApiResponse<Playlist>> CreatePlaylist(string userId, string playlistName);
+}
+
 public class SpotifyUsersApi : SpotifyApiBase, ISpotifyUsersApi
 {
     public SpotifyUsersApi(ISpotifyAuthProvider authProvider) : base(authProvider, "users")
