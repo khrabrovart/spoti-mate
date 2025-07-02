@@ -1,9 +1,9 @@
-name: Run All
+name: Create Blend
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * SUN" # Runs weekly on Sunday at 3 AM UTC
+    - cron: "0 3 * * *" # Runs daily at 3 AM UTC
 
 env:
   DOTNET_VERSION: "8.0.x"
@@ -21,10 +21,11 @@ jobs:
         run: >-
           dotnet run --project ./src/SpotiMate/SpotiMate.csproj -c Release
           --
-          run-all
+          create-blend
           --client-id=${{secrets.CLIENT_ID}}
           --client-secret=${{secrets.CLIENT_SECRET}}
           --refresh-token=${{secrets.REFRESH_TOKEN}}
-          --duplicates-playlist-id=${{secrets.DUPLICATES_PLAYLIST_ID}}
-          --artist-followers-threshold=${{vars.ARTIST_FOLLOWERS_THRESHOLD}}
-          --days=${{vars.RECENCY_DAYS}}
+          --blend-refresh-token=${{secrets.BLEND_REFRESH_TOKEN}}
+          --blend-playlist-id=${{secrets.BLEND_PLAYLIST_ID}}
+          --blend-additional-playlists=${{secrets.BLEND_ADDITIONAL_PLAYLISTS}}
+          --blend-size=${{vars.BLEND_SIZE}}
