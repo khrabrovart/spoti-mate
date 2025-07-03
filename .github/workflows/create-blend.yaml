@@ -27,5 +27,5 @@ jobs:
           --refresh-token=${{secrets.REFRESH_TOKEN}}
           --blend-refresh-token=${{secrets.BLEND_REFRESH_TOKEN}}
           --blend-playlist-id=${{secrets.BLEND_PLAYLIST_ID}}
-          --blend-additional-playlists=${{secrets.BLEND_ADDITIONAL_PLAYLISTS}}
+          --blend-additional-playlists=${{vars.BLEND_ADDITIONAL_PLAYLISTS}}
           --blend-size=${{vars.BLEND_SIZE}}
