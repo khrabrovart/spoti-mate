@@ -96,9 +96,9 @@ public class BlendService : IBlendService
         var additionalTasks = additionalPlaylists
             .Select(async (playlistId, i) =>
             {
-                CliPrint.Info($"Loading additional playlist tracks for index {i}");
+                CliPrint.Info($"Loading additional playlist tracks: {i}");
                 await LoadAdditionalPlaylistTracks(playlistId, additionalTracksList);
-                CliPrint.Info($"Additional playlist tracks for index {i} loaded");
+                CliPrint.Info($"Additional playlist tracks loaded: {i}");
             });
 
         await Task.WhenAll(additionalTasks);
