@@ -105,6 +105,7 @@ public class BlendService : IBlendService
 
         var additionalTracks = additionalTracksList
             .Select((t, i) => new BlendTrack(t, i % 2 == 0))
+            .Distinct(new TrackComparer())
             .ToArray();
 
         CliPrint.Info("Selecting tracks");
