@@ -29,6 +29,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\SpotiMate.OpenAI\SpotiMate.OpenAI.csproj" />
+      <ProjectReference Include="..\SpotiMate.SpotifyWeb\SpotiMate.SpotifyWeb.csproj" />
       <ProjectReference Include="..\SpotiMate.Spotify\SpotiMate.Spotify.csproj" />
     </ItemGroup>
 

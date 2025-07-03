@@ -9,6 +9,7 @@ public interface ISpotifyClient
     ISpotifyArtistsService Artists { get; }
     ISpotifyMeService Me { get; }
     ISpotifyPlaylistsService Playlists { get; }
+    ISpotifyTracksService Tracks { get; }
 }
 
 public class SpotifyClient : ISpotifyClient
@@ -20,9 +21,11 @@ public class SpotifyClient : ISpotifyClient
         Artists = new SpotifyArtistsService(new SpotifyArtistsApi(authProvider));
         Me = new SpotifyMeService(new SpotifyMeApi(authProvider));
         Playlists = new SpotifyPlaylistsService(new SpotifyPlaylistsApi(authProvider));
+        Tracks = new SpotifyTracksService(new SpotifyTracksApi(authProvider));
     }
 
     public ISpotifyArtistsService Artists { get; }
     public ISpotifyMeService Me { get; }
     public ISpotifyPlaylistsService Playlists { get; }
+    public ISpotifyTracksService Tracks { get; }
 }

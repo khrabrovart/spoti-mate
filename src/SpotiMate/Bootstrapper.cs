@@ -5,6 +5,7 @@ using SpotiMate.Handlers;
 using SpotiMate.OpenAI.Extensions;
 using SpotiMate.Services;
 using SpotiMate.Spotify;
+using SpotiMate.SpotifyWeb;
 
 namespace SpotiMate;
 
@@ -26,6 +27,8 @@ public class Bootstrapper
             .AddTransient<ICommandHandler, CommandHandler>()
 
             .AddSingleton<ISpotifyClient>(_ => new SpotifyClient(options.ClientId, options.ClientSecret, options.RefreshToken))
+
+            .AddSingleton<ISpotifyPlaylistWebParser, SpotifyPlaylistWebParser>()
 
             .AddTransient<IDuplicateService, DuplicateService>()
             .AddTransient<IArtistService, ArtistService>()

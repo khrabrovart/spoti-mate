@@ -1,6 +1,8 @@
+using System.Collections.Concurrent;
 using SpotiMate.Cli;
 using SpotiMate.Spotify;
 using SpotiMate.Spotify.Models;
+using SpotiMate.SpotifyWeb;
 
 namespace SpotiMate.Services;
 
@@ -53,10 +55,12 @@ public class BlendService : IBlendService
     }
 
     private readonly ISpotifyClient _spotifyClient;
+    private readonly ISpotifyPlaylistWebParser _spotifyPlaylistWebParser;
 
-    public BlendService(ISpotifyClient spotifyClient)
+    public BlendService(ISpotifyClient spotifyClient, ISpotifyPlaylistWebParser spotifyPlaylistWebParser)
     {
         _spotifyClient = spotifyClient;
+        _spotifyPlaylistWebParser = spotifyPlaylistWebParser;
     }
 
     public async Task CreateBlend(
@@ -85,24 +89,19 @@ public class BlendService : IBlendService
             .Select((t, i) => new BlendTrack(t.Track, i % 2 == 0))
             .ToArray();
 
-        CliPrint.Info("Getting additional playlists");
+        CliPrint.Info("Loading additional playlists");
 
-        var additionalTracksList = new List<TrackObject>();
+        var additionalTracksList = new ConcurrentBag<TrackObject>();
 
-        foreach (var playlistId in additionalPlaylists)
-        {
-            CliPrint.Info($"Getting tracks from playlist \"{playlistId}\"");
-
-            var playlistTracks = await _spotifyClient.Playlists.GetPlaylistTracks(playlistId);
-
-            if (playlistTracks.Length == 0)
+        var additionalTasks = additionalPlaylists
+            .Select(async (playlistId, i) =>
             {
-                CliPrint.Warning($"No tracks found in playlist \"{playlistId}\"");
-                continue;
-            }
+                CliPrint.Info($"Loading additional playlist tracks for index {i}");
+                await LoadAdditionalPlaylistTracks(playlistId, additionalTracksList);
+                CliPrint.Info($"Additional playlist tracks for index {i} loaded");
+            });
 
-            additionalTracksList.AddRange(playlistTracks.Select(t => t.Track));
-        }
+        await Task.WhenAll(additionalTasks);
 
         var additionalTracks = additionalTracksList
             .Select((t, i) => new BlendTrack(t, i % 2 == 0))
@@ -167,5 +166,16 @@ public class BlendService : IBlendService
         }
 
         return itemsArray;
+    }
+
+    private async Task LoadAdditionalPlaylistTracks(string playlistId, ConcurrentBag<TrackObject> additionalTracks)
+    {
+        var tracksIds = await _spotifyPlaylistWebParser.GetTrackIds(playlistId);
+        var tracks = await _spotifyClient.Tracks.GetTracks(tracksIds);
+
+        foreach (var track in tracks)
+        {
+            additionalTracks.Add(track);
+        }
     }
 }
