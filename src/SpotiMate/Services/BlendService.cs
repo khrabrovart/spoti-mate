@@ -84,11 +84,6 @@ public class BlendService : IBlendService
             throw new Exception("No saved tracks found for one or both users");
         }
 
-        var commonTracks = mySavedTracks
-            .Intersect(otherSavedTracks, new TrackComparer())
-            .Select((t, i) => new BlendTrack(t.Track, i % 2 == 0))
-            .ToArray();
-
         CliPrint.Info("Loading additional playlists");
 
         var additionalTracksList = new ConcurrentBag<TrackObject>();
@@ -96,9 +91,9 @@ public class BlendService : IBlendService
         var additionalTasks = additionalPlaylists
             .Select(async (playlistId, i) =>
             {
-                CliPrint.Info($"Loading additional playlist tracks: {i}");
+                CliPrint.Info($"Loading additional playlist tracks, task #{i}");
                 await LoadAdditionalPlaylistTracks(playlistId, additionalTracksList);
-                CliPrint.Info($"Additional playlist tracks loaded: {i}");
+                CliPrint.Info($"Additional playlist tracks loaded, task #{i}");
             });
 
         await Task.WhenAll(additionalTasks);
@@ -113,13 +108,11 @@ public class BlendService : IBlendService
         var mySelectedTracks = Shuffle(mySavedTracks).Take(blendSize);
         var otherSelectedTracks = Shuffle(otherSavedTracks).Take(blendSize);
         var additionalSelectedTracks = Shuffle(additionalTracks).Take(blendSize);
-        var commonSelectedTracks = Shuffle(commonTracks).Take(blendSize);
 
         CliPrint.Info("Blending");
 
         var allTracks = new HashSet<BlendTrack>(new TrackComparer());
 
-        allTracks.UnionWith(commonSelectedTracks);
         allTracks.UnionWith(otherSelectedTracks);
         allTracks.UnionWith(mySelectedTracks);
         allTracks.UnionWith(additionalSelectedTracks);
