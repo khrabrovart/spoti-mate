@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace SpotiMate.Spotify.Models;
 
-public class TrackObject
+public class ItemObject
 {
     [JsonPropertyName("id")]
     public string Id { get; set; }
@@ -12,9 +12,6 @@ public class TrackObject
     
     [JsonPropertyName("artists")]
     public ArtistObject[] Artists { get; set; }
-    
-    [JsonPropertyName("popularity")]
-    public int Popularity { get; set; }
     
     [JsonPropertyName("duration_ms")]
     public int DurationMs { get; set; }

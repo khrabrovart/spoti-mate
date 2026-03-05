@@ -13,7 +13,4 @@ public class CreateBlendOptions : CliOptions
 
     [Option("blend-playlist-id", Required = true, HelpText = "ID of the playlist to add blended tracks to.")]
     public string BlendPlaylistId { get; set; }
-
-    [Option("blend-additional-playlists", Separator = ',', HelpText = "Additional playlists to include in the blend, separated by commas.")]
-    public IEnumerable<string> BlendAdditionalPlaylists { get; set; }
 }

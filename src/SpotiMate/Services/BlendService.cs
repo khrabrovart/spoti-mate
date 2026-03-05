@@ -1,8 +1,6 @@
-using System.Collections.Concurrent;
 using SpotiMate.Cli;
 using SpotiMate.Spotify;
 using SpotiMate.Spotify.Models;
-using SpotiMate.SpotifyWeb;
 
 namespace SpotiMate.Services;
 
@@ -10,7 +8,6 @@ public interface IBlendService
 {
     Task CreateBlend(
         ISpotifyClient otherSpotifyClient,
-        string[] additionalPlaylists,
         int blendSize,
         string blendPlaylistId);
 }
@@ -19,13 +16,13 @@ public class BlendService : IBlendService
 {
     private class BlendTrack
     {
-        public BlendTrack(TrackObject track, bool isMyTrack)
+        public BlendTrack(ItemObject item, bool isMyTrack)
         {
-            Track = track;
+            Item = item;
             IsMyTrack = isMyTrack;
         }
 
-        public TrackObject Track { get; }
+        public ItemObject Item { get; }
         public bool IsMyTrack { get; }
     }
 
@@ -43,71 +40,51 @@ public class BlendService : IBlendService
                 return false;
             }
 
-            return x.Track.Name.Equals(y.Track.Name, StringComparison.OrdinalIgnoreCase) &&
-                   x.Track.Artists.Select(a => a.Id).SequenceEqual(y.Track.Artists.Select(a => a.Id));
+            return x.Item.Name.Equals(y.Item.Name, StringComparison.OrdinalIgnoreCase) &&
+                   x.Item.Artists.Select(a => a.Id).SequenceEqual(y.Item.Artists.Select(a => a.Id));
         }
 
         public int GetHashCode(BlendTrack obj)
         {
-            return obj.Track.Name.GetHashCode() ^
-                   obj.Track.Artists.Select(a => a.Id).Aggregate(0, (hash, id) => hash ^ id.GetHashCode());
+            return obj.Item.Name.GetHashCode() ^
+                   obj.Item.Artists.Select(a => a.Id).Aggregate(0, (hash, id) => hash ^ id.GetHashCode());
         }
     }
 
     private readonly ISpotifyClient _spotifyClient;
-    private readonly ISpotifyPlaylistWebParser _spotifyPlaylistWebParser;
 
-    public BlendService(ISpotifyClient spotifyClient, ISpotifyPlaylistWebParser spotifyPlaylistWebParser)
+    public BlendService(ISpotifyClient spotifyClient)
     {
         _spotifyClient = spotifyClient;
-        _spotifyPlaylistWebParser = spotifyPlaylistWebParser;
     }
 
     public async Task CreateBlend(
         ISpotifyClient otherSpotifyClient,
-        string[] additionalPlaylists,
         int blendSize,
         string blendPlaylistId)
     {
-        CliPrint.Info("Getting saved tracks");
+        CliPrint.Info("Loading saved tracks");
 
         var mySavedTracksTask = _spotifyClient.Me.GetSavedTracks();
         var otherSavedTracksTask = otherSpotifyClient.Me.GetSavedTracks();
 
         await Task.WhenAll(mySavedTracksTask, otherSavedTracksTask);
 
-        var mySavedTracks = mySavedTracksTask.Result.Select(t => new BlendTrack(t.Track, true)).ToArray();
-        var otherSavedTracks = otherSavedTracksTask.Result.Select(t => new BlendTrack(t.Track, false)).ToArray();
+        var mySavedTracks = mySavedTracksTask.Result.Select(t => new BlendTrack(t.Item, true)).ToArray();
+        var otherSavedTracks = otherSavedTracksTask.Result.Select(t => new BlendTrack(t.Item, false)).ToArray();
 
         if (mySavedTracks.Length == 0 || otherSavedTracks.Length == 0)
         {
             throw new Exception("No saved tracks found for one or both users");
         }
 
-        CliPrint.Info("Loading additional playlists");
-
-        var additionalTracksList = new ConcurrentBag<TrackObject>();
-
-        var additionalTasks = additionalPlaylists
-            .Select(async (playlistId, i) =>
-            {
-                CliPrint.Info($"Loading additional playlist tracks, task #{i}");
-                await LoadAdditionalPlaylistTracks(playlistId, additionalTracksList);
-                CliPrint.Info($"Additional playlist tracks loaded, task #{i}");
-            });
-
-        await Task.WhenAll(additionalTasks);
-
-        var additionalTracks = additionalTracksList
-            .Select((t, i) => new BlendTrack(t, i % 2 == 0))
-            .Distinct(new TrackComparer())
-            .ToArray();
+        CliPrint.Info($"Loaded {mySavedTracks.Length} saved tracks for user 1");
+        CliPrint.Info($"Loaded {otherSavedTracks.Length} saved tracks for user 2");
 
         CliPrint.Info("Selecting tracks");
 
         var mySelectedTracks = Shuffle(mySavedTracks).Take(blendSize);
         var otherSelectedTracks = Shuffle(otherSavedTracks).Take(blendSize);
-        var additionalSelectedTracks = Shuffle(additionalTracks).Take(blendSize);
 
         CliPrint.Info("Blending");
 
@@ -115,27 +92,26 @@ public class BlendService : IBlendService
 
         allTracks.UnionWith(otherSelectedTracks);
         allTracks.UnionWith(mySelectedTracks);
-        allTracks.UnionWith(additionalSelectedTracks);
 
         var blendedTracks = Shuffle(allTracks).Take(blendSize);
 
         CliPrint.Info("Updating playlist");
 
-        var oldBlendPlaylistTracks = await _spotifyClient.Playlists.GetPlaylistTracks(blendPlaylistId);
+        var oldBlendPlaylistTracks = await _spotifyClient.Playlists.GetPlaylistItems(blendPlaylistId);
 
-        await _spotifyClient.Playlists.RemoveTracksFromPlaylist(
+        await _spotifyClient.Playlists.RemoveItemsFromPlaylist(
             blendPlaylistId,
-            oldBlendPlaylistTracks.Select(t => t.Track.Id).ToArray());
+            oldBlendPlaylistTracks.Select(t => t.Item.Id).ToArray());
 
         foreach (var track in blendedTracks)
         {
             if (track.IsMyTrack)
             {
-                await _spotifyClient.Playlists.AddTracksToPlaylist(blendPlaylistId, [track.Track.Id]);
+                await _spotifyClient.Playlists.AddItemsToPlaylist(blendPlaylistId, [track.Item.Id]);
             }
             else
             {
-                await otherSpotifyClient.Playlists.AddTracksToPlaylist(blendPlaylistId, [track.Track.Id]);
+                await otherSpotifyClient.Playlists.AddItemsToPlaylist(blendPlaylistId, [track.Item.Id]);
             }
         }
 
@@ -160,16 +136,5 @@ public class BlendService : IBlendService
         }
 
         return itemsArray;
-    }
-
-    private async Task LoadAdditionalPlaylistTracks(string playlistId, ConcurrentBag<TrackObject> additionalTracks)
-    {
-        var tracksIds = await _spotifyPlaylistWebParser.GetTrackIds(playlistId);
-        var tracks = await _spotifyClient.Tracks.GetTracks(tracksIds);
-
-        foreach (var track in tracks)
-        {
-            additionalTracks.Add(track);
-        }
     }
 }

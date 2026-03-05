@@ -7,9 +7,7 @@ public interface ISpotifyMeService : ISpotifyService<ISpotifyMeApi>
 {
     Task<UserProfile> GetCurrentUserProfile();
     Task<SavedTrackObject[]> GetSavedTracks();
-    Task<ArtistObject[]> GetFollowedArtists();
-    Task FollowArtists(string[] artistIds);
-    Task UnfollowArtists(string[] artistIds);
+    Task<Playlist> CreatePlaylist(string playlistName);
 }
 
 public class SpotifyMeService : ISpotifyMeService
@@ -60,62 +58,15 @@ public class SpotifyMeService : ISpotifyMeService
         }
     }
 
-    public async Task<ArtistObject[]> GetFollowedArtists()
+    public async Task<Playlist> CreatePlaylist(string playlistName)
     {
-        var artists = new List<ArtistObject>();
+        var response = await Api.CreatePlaylist(playlistName);
 
-        const int limit = 50;
-        string lastArtistId = null;
-
-        while (true)
+        if (response.IsError)
         {
-            var response = await Api.GetFollowedArtists(lastArtistId, limit);
-
-            if (response.IsError)
-            {
-                throw new Exception($"Failed to get followed artists: {response.Error}");
-            }
-
-            artists.AddRange(response.Data.Artists.Items);
-
-            if (artists.Count >= response.Data.Artists.Total)
-            {
-                return artists.ToArray();
-            }
-
-            lastArtistId = response.Data.Artists.Items.LastOrDefault()?.Id;
+            throw new Exception($"Failed to create playlist: {response.Error}");
         }
-    }
 
-    public async Task FollowArtists(string[] artistIds)
-    {
-        const int chunkSize = 50;
-        var chunks = artistIds.Chunk(chunkSize);
-
-        foreach (var chunk in chunks)
-        {
-            var result = await Api.FollowArtists(chunk);
-
-            if (result.IsError)
-            {
-                throw new Exception($"Failed to follow artists: {result.Error}");
-            }
-        }
-    }
-
-    public async Task UnfollowArtists(string[] artistIds)
-    {
-        const int chunkSize = 50;
-        var chunks = artistIds.Chunk(chunkSize);
-
-        foreach (var chunk in chunks)
-        {
-            var result = await Api.UnfollowArtists(chunk);
-
-            if (result.IsError)
-            {
-                throw new Exception($"Failed to unfollow artists: {result.Error}");
-            }
-        }
+        return response.Data;
     }
 }

@@ -5,10 +5,9 @@ namespace SpotiMate.Spotify.Services;
 
 public interface ISpotifyPlaylistsService : ISpotifyService<ISpotifyPlaylistsApi>
 {
-    Task<PlaylistTrackObject[]> GetPlaylistTracks(string playlistId);
-    Task AddTracksToPlaylist(string playlistId, string[] trackIds);
-    Task<string> CreatePlaylist(string userId, string playlistName);
-    Task RemoveTracksFromPlaylist(string playlistId, string[] trackIds);
+    Task<PlaylistItemObject[]> GetPlaylistItems(string playlistId);
+    Task AddItemsToPlaylist(string playlistId, string[] itemIds);
+    Task RemoveItemsFromPlaylist(string playlistId, string[] itemIds);
 }
 
 public class SpotifyPlaylistsService : ISpotifyPlaylistsService
@@ -20,16 +19,16 @@ public class SpotifyPlaylistsService : ISpotifyPlaylistsService
 
     public ISpotifyPlaylistsApi Api { get; }
 
-    public async Task<PlaylistTrackObject[]> GetPlaylistTracks(string playlistId)
+    public async Task<PlaylistItemObject[]> GetPlaylistItems(string playlistId)
     {
-        var tracks = new List<PlaylistTrackObject>();
+        var tracks = new List<PlaylistItemObject>();
 
         const int limit = 50;
         var offset = 0;
 
         while (true)
         {
-            var page = await Api.GetPlaylistTracks(playlistId, offset, limit);
+            var page = await Api.GetPlaylistItems(playlistId, offset, limit);
 
             if (page.IsError)
             {
@@ -47,14 +46,14 @@ public class SpotifyPlaylistsService : ISpotifyPlaylistsService
         }
     }
 
-    public async Task AddTracksToPlaylist(string playlistId, string[] trackIds)
+    public async Task AddItemsToPlaylist(string playlistId, string[] itemIds)
     {
-        const int chunkSize = 50;
-        var chunks = trackIds.Chunk(chunkSize);
+        const int chunkSize = 100;
+        var chunks = itemIds.Chunk(chunkSize);
 
         foreach (var chunk in chunks)
         {
-            var result = await Api.AddTracksToPlaylist(playlistId, chunk);
+            var result = await Api.AddItemsToPlaylist(playlistId, chunk);
 
             if (result.IsError)
             {
@@ -63,26 +62,14 @@ public class SpotifyPlaylistsService : ISpotifyPlaylistsService
         }
     }
 
-    public async Task<string> CreatePlaylist(string userId, string playlistName)
+    public async Task RemoveItemsFromPlaylist(string playlistId, string[] itemIds)
     {
-        var result = await Api.CreatePlaylist(userId, playlistName);
-
-        if (result.IsError)
-        {
-            throw new Exception($"Failed to create playlist: {result.Error}");
-        }
-
-        return result.Data.Id;
-    }
-
-    public async Task RemoveTracksFromPlaylist(string playlistId, string[] trackIds)
-    {
-        const int chunkSize = 50;
-        var chunks = trackIds.Chunk(chunkSize);
+        const int chunkSize = 100;
+        var chunks = itemIds.Chunk(chunkSize);
 
         foreach (var chunk in chunks)
         {
-            var result = await Api.RemoveTracksFromPlaylist(playlistId, chunk);
+            var result = await Api.RemoveItemsFromPlaylist(playlistId, chunk);
 
             if (result.IsError)
             {

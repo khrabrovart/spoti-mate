@@ -9,10 +9,4 @@ public class ArtistObject
     
     [JsonPropertyName("name")]
     public string Name { get; set; }
-
-    [JsonPropertyName("popularity")]
-    public int Popularity { get; set; }
-
-    [JsonPropertyName("followers")]
-    public ArtistFollowers Followers { get; set; }
 }

@@ -8,5 +8,5 @@ public class SavedTrackObject
     public DateTime AddedAt { get; set; }
     
     [JsonPropertyName("track")]
-    public TrackObject Track { get; set; }
+    public ItemObject Item { get; set; }
 }

@@ -23,8 +23,6 @@ public class DuplicateService : IDuplicateService
 
         public string[] ArtistIds { get; set; }
 
-        public int Popularity { get; set; }
-
         public DateTime AddedAt { get; set; }
     }
 
@@ -46,7 +44,7 @@ public class DuplicateService : IDuplicateService
             return;
         }
 
-        await _spotifyClient.Playlists.AddTracksToPlaylist(duplicatesPlaylistId, duplicates);
+        await _spotifyClient.Playlists.AddItemsToPlaylist(duplicatesPlaylistId, duplicates);
 
         CliPrint.Success($"Successfully saved {duplicates.Length} duplicates");
     }
@@ -91,12 +89,8 @@ public class DuplicateService : IDuplicateService
             {
                 CliPrint.Info($"- {string.Join(", ", duplicate.ArtistNames)} - {duplicate.OriginalName}; Id {duplicate.Id}; Added on {duplicate.AddedAt}");
             }
-                
-            var orderedDuplicates = localDuplicates
-                .OrderByDescending(d => d.Popularity)
-                .Select(d => d.Id);
-                
-            duplicates.AddRange(orderedDuplicates);
+
+            duplicates.AddRange(localDuplicates.Select(d => d.Id));
         }
         
         return duplicates.Distinct().ToArray();
@@ -106,12 +100,11 @@ public class DuplicateService : IDuplicateService
     {
         return new PreparedTrack
         {
-            Id = track.Track.Id,
-            OriginalName = track.Track.Name,
-            SanitizedName = PrepareTrackName(track.Track.Name),
-            ArtistNames = track.Track.Artists.Select(a => a.Name).ToArray(),
-            ArtistIds = track.Track.Artists.Select(a => a.Id).ToArray(),
-            Popularity = track.Track.Popularity,
+            Id = track.Item.Id,
+            OriginalName = track.Item.Name,
+            SanitizedName = PrepareTrackName(track.Item.Name),
+            ArtistNames = track.Item.Artists.Select(a => a.Name).ToArray(),
+            ArtistIds = track.Item.Artists.Select(a => a.Id).ToArray(),
             AddedAt = track.AddedAt
         };
     }

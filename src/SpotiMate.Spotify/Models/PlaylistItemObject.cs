@@ -2,11 +2,11 @@ using System.Text.Json.Serialization;
 
 namespace SpotiMate.Spotify.Models;
 
-public class PlaylistTrackObject
+public class PlaylistItemObject
 {
     [JsonPropertyName("added_at")]
     public DateTime AddedAt { get; set; }
     
-    [JsonPropertyName("track")]
-    public TrackObject Track { get; set; }
+    [JsonPropertyName("item")]
+    public ItemObject Item { get; set; }
 }

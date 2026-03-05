@@ -2,10 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SpotiMate.Cli;
 using SpotiMate.Handlers;
-using SpotiMate.OpenAI.Extensions;
 using SpotiMate.Services;
 using SpotiMate.Spotify;
-using SpotiMate.SpotifyWeb;
 
 namespace SpotiMate;
 
@@ -24,16 +22,9 @@ public class Bootstrapper
     private static void ConfigureServices(IServiceCollection services, CliOptions options)
     {
         services
-            .AddTransient<ICommandHandler, CommandHandler>()
-
             .AddSingleton<ISpotifyClient>(_ => new SpotifyClient(options.ClientId, options.ClientSecret, options.RefreshToken))
-
-            .AddSingleton<ISpotifyPlaylistWebParser, SpotifyPlaylistWebParser>()
-
+            .AddTransient<ICommandHandler, CommandHandler>()
             .AddTransient<IDuplicateService, DuplicateService>()
-            .AddTransient<IArtistService, ArtistService>()
-            .AddTransient<IBlendService, BlendService>()
-
-            .AddOpenAI();
+            .AddTransient<IBlendService, BlendService>();
     }
 }
