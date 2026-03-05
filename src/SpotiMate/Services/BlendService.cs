@@ -81,21 +81,7 @@ public class BlendService : IBlendService
         CliPrint.Info($"Loaded {mySavedTracks.Length} saved tracks for user 1");
         CliPrint.Info($"Loaded {otherSavedTracks.Length} saved tracks for user 2");
 
-        CliPrint.Info("Selecting tracks");
-
-        var mySelectedTracks = Shuffle(mySavedTracks).Take(blendSize);
-        var otherSelectedTracks = Shuffle(otherSavedTracks).Take(blendSize);
-
-        CliPrint.Info("Blending");
-
-        var allTracks = new HashSet<BlendTrack>(new TrackComparer());
-
-        allTracks.UnionWith(otherSelectedTracks);
-        allTracks.UnionWith(mySelectedTracks);
-
-        var blendedTracks = Shuffle(allTracks).Take(blendSize);
-
-        CliPrint.Info("Updating playlist");
+        CliPrint.Info("Clearing existing blend");
 
         var oldBlendPlaylistTracks = await _spotifyClient.Playlists.GetPlaylistItems(blendPlaylistId);
 
@@ -103,7 +89,17 @@ public class BlendService : IBlendService
             blendPlaylistId,
             oldBlendPlaylistTracks.Select(t => t.Item.Id).ToArray());
 
-        foreach (var track in blendedTracks)
+        CliPrint.Info("Creating new blend");
+
+        var myShuffledTracks = Shuffle(mySavedTracks);
+        var otherShuffledTracks = Shuffle(otherSavedTracks);
+
+        var newBlendPlaylistTracks = myShuffledTracks.Zip(otherShuffledTracks, (myTrack, otherTrack) => new[] { myTrack, otherTrack })
+            .SelectMany(t => t)
+            .Distinct(new TrackComparer())
+            .Take(blendSize);
+
+        foreach (var track in newBlendPlaylistTracks)
         {
             if (track.IsMyTrack)
             {
