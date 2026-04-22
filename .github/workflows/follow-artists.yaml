@@ -1,0 +1,27 @@
+name: Follow Artists
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * SUN" # Weekly, after run-all (Sunday 3 AM UTC)
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: "true"
+  TERM: "xterm"
+
+jobs:
+  follow-artists:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run
+        run: >-
+          dotnet run --project ./src/SpotiMate/SpotiMate.csproj -c Release
+          --
+          follow-artists
+          --client-id=${{secrets.CLIENT_ID}}
+          --client-secret=${{secrets.CLIENT_SECRET}}
+          --refresh-token=${{secrets.REFRESH_TOKEN}}
