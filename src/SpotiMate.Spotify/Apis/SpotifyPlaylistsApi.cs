@@ -1,5 +1,5 @@
 using SpotiMate.Spotify.Extensions;
-using SpotiMate.Spotify.Models;
+using SpotiMate.Spotify.Models.Responses;
 using SpotiMate.Spotify.Providers;
 
 namespace SpotiMate.Spotify.Apis;

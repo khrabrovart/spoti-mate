@@ -1,5 +1,6 @@
 using SpotiMate.Spotify.Apis;
-using SpotiMate.Spotify.Models;
+using SpotiMate.Spotify.Models.Requests;
+using SpotiMate.Spotify.Models.Responses;
 
 namespace SpotiMate.Spotify.Services;
 
@@ -7,6 +8,9 @@ public interface ISpotifyMeService : ISpotifyService<ISpotifyMeApi>
 {
     Task<UserProfile> GetCurrentUserProfile();
     Task<SavedTrackObject[]> GetSavedTracks();
+    Task<ArtistObject[]> GetFollowedArtists();
+    Task SaveLibraryItems(SpotifyLibraryItemType itemType, string[] ids);
+    Task RemoveLibraryItems(SpotifyLibraryItemType itemType, string[] ids);
     Task<Playlist> CreatePlaylist(string playlistName);
 }
 
@@ -55,6 +59,62 @@ public class SpotifyMeService : ISpotifyMeService
             }
 
             offset += limit;
+        }
+    }
+
+    public async Task<ArtistObject[]> GetFollowedArtists()
+    {
+        var artists = new List<ArtistObject>();
+
+        const int limit = 50;
+        string after = null;
+
+        while (true)
+        {
+            var page = await Api.GetFollowedArtists(after, limit);
+
+            if (page.IsError)
+            {
+                throw new Exception($"Failed to get followed artists: {page.Error}");
+            }
+
+            artists.AddRange(page.Data.Artists.Items);
+            after = page.Data.Artists.Cursors.After;
+
+            if (string.IsNullOrEmpty(after))
+            {
+                return [.. artists];
+            }
+        }
+    }
+
+    public async Task SaveLibraryItems(SpotifyLibraryItemType itemType, string[] ids)
+    {
+        const int chunkSize = 40;
+
+        foreach (var chunk in ids.Chunk(chunkSize))
+        {
+            var response = await Api.SaveLibraryItems(itemType, chunk.ToArray());
+
+            if (response.IsError)
+            {
+                throw new Exception($"Failed to save library items: {response.Error}");
+            }
+        }
+    }
+
+    public async Task RemoveLibraryItems(SpotifyLibraryItemType itemType, string[] ids)
+    {
+        const int chunkSize = 40;
+
+        foreach (var chunk in ids.Chunk(chunkSize))
+        {
+            var response = await Api.RemoveLibraryItems(itemType, chunk.ToArray());
+
+            if (response.IsError)
+            {
+                throw new Exception($"Failed to remove library items: {response.Error}");
+            }
         }
     }
 

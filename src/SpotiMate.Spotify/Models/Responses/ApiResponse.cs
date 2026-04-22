@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace SpotiMate.Spotify.Models;
+namespace SpotiMate.Spotify.Models.Responses;
 
 public class ApiResponse<TResponse> : ApiResponse
 {

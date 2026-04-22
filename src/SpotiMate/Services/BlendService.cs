@@ -1,6 +1,6 @@
 using SpotiMate.Cli;
 using SpotiMate.Spotify;
-using SpotiMate.Spotify.Models;
+using SpotiMate.Spotify.Models.Responses;
 
 namespace SpotiMate.Services;
 

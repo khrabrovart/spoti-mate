@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SpotiMate.Spotify.Models;
+namespace SpotiMate.Spotify.Models.Responses;
 
 public class UserProfile
 {

@@ -1,6 +1,6 @@
 using System.Net;
 using Flurl.Http;
-using SpotiMate.Spotify.Models;
+using SpotiMate.Spotify.Models.Responses;
 
 namespace SpotiMate.Spotify.Extensions;
 
