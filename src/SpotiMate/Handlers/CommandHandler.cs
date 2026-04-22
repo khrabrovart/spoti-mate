@@ -15,15 +15,18 @@ public class CommandHandler : ICommandHandler
 
     private readonly IDuplicateService _duplicateService;
     private readonly IBlendService _blendService;
+    private readonly IArtistService _artistService;
 
     public CommandHandler(
         ISpotifyClient mySpotifyClient,
         IDuplicateService duplicateService,
-        IBlendService blendService)
+        IBlendService blendService,
+        IArtistService artistService)
     {
         _mySpotifyClient = mySpotifyClient;
         _duplicateService = duplicateService;
         _blendService = blendService;
+        _artistService = artistService;
     }
 
     public async Task<int> Handle(CliOptions options)
@@ -36,6 +39,14 @@ public class CommandHandler : ICommandHandler
 
             case CreateBlendOptions createBlendOptions:
                 await CreateBlend(createBlendOptions);
+                break;
+
+            case FollowArtistsOptions:
+                await _artistService.FollowAllFromSavedTracks();
+                break;
+
+            case UnfollowArtistsOptions:
+                await _artistService.UnfollowAllFollowed();
                 break;
 
             default:

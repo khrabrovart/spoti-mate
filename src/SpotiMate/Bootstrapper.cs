@@ -25,6 +25,7 @@ public class Bootstrapper
             .AddSingleton<ISpotifyClient>(_ => new SpotifyClient(options.ClientId, options.ClientSecret, options.RefreshToken))
             .AddTransient<ICommandHandler, CommandHandler>()
             .AddTransient<IDuplicateService, DuplicateService>()
-            .AddTransient<IBlendService, BlendService>();
+            .AddTransient<IBlendService, BlendService>()
+            .AddTransient<IArtistService, ArtistService>();
     }
 }
