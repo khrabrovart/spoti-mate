@@ -2,8 +2,6 @@ name: Follow Artists
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 4 * * SUN" # Weekly, after run-all (Sunday 3 AM UTC)
 
 env:
   DOTNET_VERSION: "8.0.x"
