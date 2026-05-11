@@ -32,8 +32,8 @@ public class ArtistService : IArtistService
         }
 
         var uniqueArtistIds = savedTracks
-            .SelectMany(t => t.Item.Artists)
-            .Select(a => a.Id)
+            .Where(t => t.Item.Artists is { Length: > 0 })
+            .Select(t => t.Item.Artists[0].Id)
             .Distinct()
             .ToArray();
 
